@@ -13,3 +13,5 @@ maxVal = my_list[0]
 for i in my_list:
     if i > maxVal:
         maxVal = i
+
+print("Maximum value in the list is:", maxVal)
