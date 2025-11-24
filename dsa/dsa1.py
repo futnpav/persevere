@@ -7,3 +7,6 @@ for i in my_list:
         minVal = i
 
 print("Minimum value in the list is:", minVal)
+
+# Find the maximum value in the list
+maxVal = my_list[0]
