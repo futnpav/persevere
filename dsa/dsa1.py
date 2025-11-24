@@ -10,3 +10,6 @@ print("Minimum value in the list is:", minVal)
 
 # Find the maximum value in the list
 maxVal = my_list[0]
+for i in my_list:
+    if i > maxVal:
+        maxVal = i
