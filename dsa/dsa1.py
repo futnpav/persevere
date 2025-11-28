@@ -6,3 +6,6 @@ for i in my_list:
     if i < minVal:
         minVal = i
 
+print("Minimum value in the list is:", minVal)
+# Stack Implementation
+stack = []
