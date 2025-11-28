@@ -8,4 +8,4 @@ for i in my_list:
 
 print("Minimum value in the list is:", minVal)
 # Stack Implementation
-stack = []
+# Using list as stack
