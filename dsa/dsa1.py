@@ -184,6 +184,7 @@ print("size after enqueuing 3 elements:", lq.size())
 print("dequeue after enqueuing 3 elements:", lq.dequeue())
 print("size after dequeuing 1 element:", lq.size())
 
+# implement a linked list. NOTE: INDEX STARTING AT 0
 class LinkedList:
     def __init__(self):
         self._head = None
@@ -193,24 +194,114 @@ class LinkedList:
         return self._size == 0
     
     def size(self):
-        return self._self
+        return self._size
     
-    def insert(self, i, v):
-        if(i < 0 or i > self.size()):
+    def _validIndex(self, i : int):
+        if(i < 0 or i >= self.size()):
             raise Exception("Index out of bounds")
+        
+    def _validIndex2Insert(self, i : int):
+        if(i < 0 or i > self.size()):
+            raise Exception("Invalid index for insertion")
+    
+    # return the node at index i (internal use only)
+    def _seek(self, i : int) -> Node:
+        if(self.is_empty()):
+            return None
+        self._validIndex(i)
+        current = self._head
+        j = 0
+        while(j < i):
+            current = current.next
+            j += 1
+        return current
+    
+    def append(self, v):
+        if(self.is_empty()):
+            self._head = Node(v)
+        else:
+            current = self._head
+            while(current.next is not None):
+                current = current.next
+            current.next = Node(v)
+        self._size += 1
+   
+    def retrieve(self, i : int):
+        return self._seek(i).value
+    
+    def insert(self, i : int, v):
         new_node = Node(v)
         if(i == 0):
             new_node.next = self._head
             self._head = new_node
         else:
-            previous = self._head
-            j = 0
-            while(j < i - 1):
-                previous = previous.next
-                j += 1
+            self._validIndex2Insert(i)
+            previous = self._seek(i - 1)
             new_node.next = previous.next
             previous.next = new_node
         self._size += 1
+
+    # remove and return the value at index i
+    def remove(self, i : int):
+        if(self.is_empty()):
+            return None
+        self._validIndex(i)
+        removed_value = None
+        if(i == 0):
+            removed_value = self._head.value
+            self._head = self._head.next
+        else:
+            previous = self._seek(i - 1)
+            removed_value = previous.next.value
+            previous.next = previous.next.next
+        self._size -= 1
+        return removed_value
+    
+    # sort the value in linked list, NOT THE NODES
+    def sort(self, ascending : bool = True):
+        if(self.is_empty()):
+            return False
+        if(self.size() == 1):
+            return True
+        for i in range(1, self.size()):
+            for j in range(1, self.size() - i + 1):
+                front_node = self._seek(j - 1)
+                this_node = self._seek(j)
+                if((front_node.value <= this_node.value) != ascending):
+                    temp = front_node.value
+                    front_node.value = this_node.value
+                    this_node.value = temp
+                j += 1
+            i += 1
+        return True
+    
+    def traverse(self):
+        values = []
+        current = self._head
+        while(current is not None):
+            values.append(current.value)
+            current = current.next
+        return values
+    
+ll = LinkedList()
+print("is linked list empty?:", ll.is_empty())
+print("size of linked list:", ll.size())
+ll.insert(0, 10)
+ll.insert(1, 30)
+ll.insert(1, 2)
+print("linked list after inserting 3 elements:", ll.traverse())
+print("retrieve element at index 1:", ll.retrieve(1))
+print("size after inserting 3 elements:", ll.size())
+print("remove element at index 1:", ll.remove(1))
+print("linked list after removing element at index 1:", ll.traverse())
+ll.append(4)
+ll.append(2)
+ll.append(5)
+print("linked list after appending 3 elements:", ll.traverse())
+ll.sort(True)
+print("linked list after sorting in ascending order:", ll.traverse())
+        
+
 
             
 
