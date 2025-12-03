@@ -283,28 +283,77 @@ class LinkedList:
             current = current.next
         return values
     
-ll = LinkedList()
-print("is linked list empty?:", ll.is_empty())
-print("size of linked list:", ll.size())
-ll.insert(0, 10)
-ll.insert(1, 30)
-ll.insert(1, 2)
-print("linked list after inserting 3 elements:", ll.traverse())
-print("retrieve element at index 1:", ll.retrieve(1))
-print("size after inserting 3 elements:", ll.size())
-print("remove element at index 1:", ll.remove(1))
-print("linked list after removing element at index 1:", ll.traverse())
-ll.append(4)
-ll.append(2)
-ll.append(5)
-print("linked list after appending 3 elements:", ll.traverse())
-ll.sort(True)
-print("linked list after sorting in ascending order:", ll.traverse())
+# ll = LinkedList()
+# print("is linked list empty?:", ll.is_empty())
+# print("size of linked list:", ll.size())
+# ll.insert(0, 10)
+# ll.insert(1, 30)
+# ll.insert(1, 2)
+# print("linked list after inserting 3 elements:", ll.traverse())
+# print("retrieve element at index 1:", ll.retrieve(1))
+# print("size after inserting 3 elements:", ll.size())
+# print("remove element at index 1:", ll.remove(1))
+# print("linked list after removing element at index 1:", ll.traverse())
+# ll.append(4)
+# ll.append(2)
+# ll.append(5)
+# print("linked list after appending 3 elements:", ll.traverse())
+# ll.sort(True)
+# print("linked list after sorting in ascending order:", ll.traverse())
         
 
+class HashTable:
+        def __init__(self):
+            self._store = []
+            for _ in range(10):
+                self._store.append([])
+            self._size = 0
 
-            
+        def _get_index(self, v):
+            return hash(v) % 10
 
+        def is_empty(self):
+            return self._size == 0
+        
+        def size(self):
+            return self._size
+        
+        def put(self, v):
+            self._store[self._get_index(v)].append(v)
+            self._size += 1
+
+        def has(self, v):
+            if(self.is_empty()):
+                return False
+            index = self._get_index(v)
+            if(self._store[index] is None):
+                return False
+            return v in self._store[index]
+        # return v if removed; None if not found
+        def remove(self, v):
+            if(self.is_empty()):
+                return None
+            index = self._get_index(v)
+            if(self._store[self._get_index(v)] is None):
+                return None
+            if(v in self._store[self._get_index(v)]):
+                self._store[self._get_index(v)].remove(v)
+                self._size -= 1
+                return v
+            return None
+
+ht = HashTable()
+print("is hash table empty?:", ht.is_empty())
+print("size of hash table:", ht.size())
+ht.put("apple")
+ht.put("banana")
+ht.put("orange")
+print(ht._store)
+print("size after putting 3 elements:", ht.size())
+print("has 'banana'?:", ht.has("banana"))
+print("remove 'banana':", ht.remove("banana"))
+print("has 'banana' after removal?:", ht.has("banana"))
+print("size after removing 'banana':", ht.size())
 
 
 
