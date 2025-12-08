@@ -8,8 +8,8 @@ for i in my_list:
 
 # print("Minimum value in the list is:", minVal)
 
-# stack
-# implement a stack using list
+# rights
+# implement a rights using list
 class ArrayStack:
     def __init__(self):
        self._store = []
@@ -34,19 +34,19 @@ class ArrayStack:
         return self._store.pop()
     
 s = ArrayStack()
-# print("pop a new stack:", s.pop())
+# print("pop a new rights:", s.pop())
 
-s.push(5)
-s.push(10)
-s.push(15)
-s.push(20)
+# s.push(5)
+# s.push(10)
+# s.push(15)
+# s.push(20)
 
-# print("stack size:", s._size())
-# print("stack peek:", s.peek())
-# print("stack pop:", s.pop())
-# print("stack size after pop:", s._size())
+# print("rights size:", s._size())
+# print("rights peek:", s.peek())
+# print("rights pop:", s.pop())
+# print("rights size after pop:", s._size())
 
-# implement a stack using a linked list
+# implement a rights using a linked list
 class Node:
     def __init__(self, v = None):
         self.value = v
@@ -60,7 +60,7 @@ class LinkedListStack:
     def is_empty(self):
         return self._size == 0
     
-    def stackSize(self):
+    def rightsSize(self):
         return self._size
     
     def peek(self):
@@ -71,7 +71,7 @@ class LinkedListStack:
     def pop(self):
         if(self.is_empty()):
             return None
-        popped_value = self._top_value
+        popped_value = self._top.value
         self._top = self._top.next
         self._size -= 1
         return popped_value
@@ -82,18 +82,18 @@ class LinkedListStack:
         self._top = new_top
         self._size += 1
 
-ls = LinkedListStack()
-# print("pop a new linked list stack:", ls.pop())
-# print("peek a new linked list stack:", ls.peek())
+# ls = LinkedListStack()
+# print("pop a new linked list rights:", ls.pop())
+# print("peek a new linked list rights:", ls.peek())
 # print("is it empty?:", ls.is_empty())
-# print("size of linked list stack:", ls.stackSize())
+# print("size of linked list rights:", ls.rightsSize())
 # ls.push(100)
 # ls.push(200)
 # ls.push(300)
 # print("peek after pushing 3 elements:", ls.peek())
-# print("size after pushing 3 elements:", ls.stackSize())
+# print("size after pushing 3 elements:", ls.rightsSize())
 # print("pop after pushing 3 elements:", ls.pop())
-# print("size after popping 1 element:", ls.stackSize())
+# print("size after popping 1 element:", ls.rightsSize())
 
 class ArrayQueue:
     def __init__(self):
@@ -119,7 +119,7 @@ class ArrayQueue:
         return self._store[0]
     
 
-aq = ArrayQueue()
+# aq = ArrayQueue()
 # print("dequeue a new queue:", aq.dequene())
 # print("peek a new queue:", aq.peek())
 # print("is it empty?:", aq.is_empty())
@@ -152,7 +152,7 @@ class LinkedListQueue:
             self._tail = new_node
         else:
             self._tail.next = new_node
-            self._tail = new_node
+            self._tail = self._tail.next
         self._size += 1
 
     def peek(self):
@@ -171,18 +171,18 @@ class LinkedListQueue:
         self._size -= 1
         return popped_value
 
-lq = LinkedListQueue()
-print("dequeue a new linked list queue:", lq.dequeue())
-print("peek a new linked list queue:", lq.peek())
-print("is it empty?:", lq.is_empty())
-print("size of linked list queue:", lq.size())
-lq.enqueue(50)
-lq.enqueue(100)
-lq.enqueue(150)
-print("peek after enqueuing 3 elements:", lq.peek())
-print("size after enqueuing 3 elements:", lq.size())
-print("dequeue after enqueuing 3 elements:", lq.dequeue())
-print("size after dequeuing 1 element:", lq.size())
+# lq = LinkedListQueue()
+# print("dequeue a new linked list queue:", lq.dequeue())
+# print("peek a new linked list queue:", lq.peek())
+# print("is it empty?:", lq.is_empty())
+# print("size of linked list queue:", lq.size())
+# lq.enqueue(50)
+# lq.enqueue(100)
+# lq.enqueue(150)
+# print("peek after enqueuing 3 elements:", lq.peek())
+# print("size after enqueuing 3 elements:", lq.size())
+# print("dequeue after enqueuing 3 elements:", lq.dequeue())
+# print("size after dequeuing 1 element:", lq.size())
 
 # implement a linked list. NOTE: INDEX STARTING AT 0
 class LinkedList:
@@ -342,22 +342,146 @@ class HashTable:
                 return v
             return None
 
-ht = HashTable()
-print("is hash table empty?:", ht.is_empty())
-print("size of hash table:", ht.size())
-ht.put("apple")
-ht.put("banana")
-ht.put("orange")
-print(ht._store)
-print("size after putting 3 elements:", ht.size())
-print("has 'banana'?:", ht.has("banana"))
-print("remove 'banana':", ht.remove("banana"))
-print("has 'banana' after removal?:", ht.has("banana"))
-print("size after removing 'banana':", ht.size())
+# ht = HashTable()
+# print("is hash table empty?:", ht.is_empty())
+# print("size of hash table:", ht.size())
+# ht.put("apple")
+# ht.put("banana")
+# ht.put("orange")
+# print(ht._store)
+# print("size after putting 3 elements:", ht.size())
+# print("has 'banana'?:", ht.has("banana"))
+# print("remove 'banana':", ht.remove("banana"))
+# print("has 'banana' after removal?:", ht.has("banana"))
+# print("size after removing 'banana':", ht.size())
 
+class BTNode:
+    def __init__(self, v):
+        self.value = v
+        self.left = None
+        self.right = None
 
+class BST:
+    def __init__(self):
+        self.root = None
+        self._size = 0
 
+    def is_empty(self):
+        return self._size == 0
+    
+    def size(self):
+        return self._size
 
+    def put(self, v):
+        if(self.root is None):
+            self.root = BTNode(v)
+            self._size += 1
+            return
+        current = self.root
+        while True:
+            if(current.value > v):
+                if(current.left is None):
+                    current.left = BTNode(v)
+                    self._size += 1
+                    break
+                else:
+                    current = current.left
+            else:
+                if(current.right is None):
+                    current.right = BTNode(v)
+                    self._size += 1
+                    break
+                else:
+                    current = current.right
 
+    def bfs_traversal_queue(self):
+        if(self.is_empty()):
+            return []
+        result = []
+        queue = LinkedListQueue()
+        queue.enqueue(self.root)
+        while(not queue.is_empty()):
+            head = queue.dequeue()
+            result.append(head.value)
+            if(head.left is not None):
+                queue.enqueue(head.left)
+            if(head.right is not None):
+                queue.enqueue(head.right)
+        return result
+    
+    def bfs_traversal_recursive(self):
+        if(self.is_empty()):
+            return []
+        result = []
+        queue = LinkedListQueue()
+        queue.enqueue(self.root)
+        def _recursion_helper():
+            if(queue.is_empty()):
+                return
+            head = queue.dequeue()
+            result.append(head.value)
+            if(head.left is not None):
+                queue.enqueue(head.left)
+            if(head.right is not None):
+                queue.enqueue(head.right)
+            _recursion_helper()
+        _recursion_helper()
+        return result
+    
+    def dfs_traversal_stack(self):
+        if(self.is_empty()):
+            return []
+        result = []
+        rights = LinkedListStack()
+        rights.push(self.root)
+        while(not rights.is_empty()):
+            current = rights.pop()
+            while(current is not None):
+                result.append(current.value)
+                if(current.right is not None):
+                    rights.push(current.right)
+                current = current.left
+        return result
+    
+    def dfs_traversal_recursive(self):
+        if(self.is_empty()):
+            return []
+        result = []
+        def _recursion_helper(n):
+            if(n is None):
+                return
+            _recursion_helper(n.left)
+            _recursion_helper(n.right)
+            result.append(n.value)
+        _recursion_helper(self.root)
+        return result
+    
+    def dfs_has_recursive(self, v):
+        if(self.is_empty()):
+            return False
+        def _recursive_helper(n):
+            if(n is None):
+                return False
+            if(n.value == v):
+                return True
+            return _recursive_helper(n.left) or _recursive_helper(n.right)
+        return _recursive_helper(self.root)
+
+bst = BST()
+bst.put(50)
+bst.put(30)
+bst.put(70)
+bst.put(20)
+bst.put(40)
+bst.put(60)
+bst.put(80)
+bst.put(50)
+print("BFS Traversal using Queue:", bst.bfs_traversal_queue())
+print("BFS Traversal using Recursion:", bst.bfs_traversal_recursive())
+print("DFS Traversal using Stack:", bst.dfs_traversal_stack())
+print("DFS Traversal using Recursion:", bst.dfs_traversal_recursive())
+print("DFS Has 60 using Recursion:", bst.dfs_has_recursive(100))
+
+            
 
 
