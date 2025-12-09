@@ -466,21 +466,115 @@ class BST:
                 return True
             return _recursive_helper(n.left) or _recursive_helper(n.right)
         return _recursive_helper(self.root)
+    
+    # return True if found and removed, otherwise False
+    def remove_via_closest_small(self, v):
+        if(self.is_empty()):
+            return False
+        parent = None
+        current = self.root
+        while(current is not None and current.value != v):
+            parent = current
+            if(current.value > v):
+                current = current.left
+            else:
+                current = current.right
+        if(current is None):
+            return False
+        # at this point, current is the node to be removed
+        # case 1: current has no or only one child
+        insert_at = "left" if parent.left == current else "right"
+        if(current.left is None and current.right is None):
+            parent.eval(insert_at) = None
+        elif(current.left is None):
+            parent.eval(insert_at) = current.right
+        elif(current.right is None):
+            parent.eval(insert_at) = current.left
+        # unfortunately two children
+        else:
+            # replace current with the closest smaller one
 
-bst = BST()
-bst.put(50)
-bst.put(30)
-bst.put(70)
-bst.put(20)
-bst.put(40)
-bst.put(60)
-bst.put(80)
-bst.put(50)
-print("BFS Traversal using Queue:", bst.bfs_traversal_queue())
-print("BFS Traversal using Recursion:", bst.bfs_traversal_recursive())
-print("DFS Traversal using Stack:", bst.dfs_traversal_stack())
-print("DFS Traversal using Recursion:", bst.dfs_traversal_recursive())
-print("DFS Has 60 using Recursion:", bst.dfs_has_recursive(100))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    def remove_via_closest_small(self, v):
+        if(self.is_empty()):
+            return None
+        parent = None
+        current = self.root
+        while(current is not None and current.value != v):
+            parent = current
+            if(current.value > v):
+                current = current.left
+            else:
+                current = current.right
+        if(current is None):
+            return None  # value not found
+        # Case 1: Node with only one child or no child
+        if(current.left is None or current.right is None):
+            new_child = current.left if current.left is not None else current.right
+            if(parent is None):
+                self.root = new_child
+            else:
+                if(parent.left == current):
+                    parent.left = new_child
+                else:
+                    parent.right = new_child
+        else:
+            # Case 2: Node with two children
+            successor_parent = current
+            successor = current.left
+            while(successor.right is not None):
+                successor_parent = successor
+                successor = successor.right
+            current.value = successor.value
+            if(successor_parent.left == successor):
+                successor_parent.left = successor.left
+            else:
+                successor_parent.right = successor.left
+        self._size -= 1
+        return v
+    
+
+
+
+
+# bst = BST()
+# bst.put(50)
+# bst.put(30)
+# bst.put(70)
+# bst.put(20)
+# bst.put(40)
+# bst.put(60)
+# bst.put(80)
+# bst.put(50)
+# print("BFS Traversal using Queue:", bst.bfs_traversal_queue())
+# print("BFS Traversal using Recursion:", bst.bfs_traversal_recursive())
+# print("DFS Traversal using Stack:", bst.dfs_traversal_stack())
+# print("DFS Traversal using Recursion:", bst.dfs_traversal_recursive())
+# print("DFS Has 60 using Recursion:", bst.dfs_has_recursive(100))
+
+
 
             
 
