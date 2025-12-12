@@ -592,42 +592,108 @@ class BST:
 # print("DFS Has 60 using Recursion:", bst.dfs_has_recursive(100))
 
 
-# class BTNodeWithDepth:
-#     def __init__(self, v, d):
-#         self.value = v
-#         self.depth = d
-#         self.left = None
-#         self.right = None
+class BTNodeWithDepth:
+    def __init__(self, v, d):
+        self.value = v
+        self.depth = d
+        self.left = None
+        self.right = None
+# each node keeps its own depth starting from 1
+# ensure completeness rearranging values in case of insertion to a single parent
+class BSTCompleteBalanced:
+    def __init__(self):
+        self.root = None
+        self._size = 0
+        self.left_depth = 0
+        self.right_depth = 0
 
-# class BSTCompleteBalanced:
-#     def __init__(self):
-#         self.root = None
-#         self._size = 0
-#         self.left_depth = 0
-#         self.right_depth = 0
-
-#     def is_empty(self):
-#         return self._size == 0
+    def is_empty(self):
+        return self._size == 0
     
-#     def size(self):
-#         return self._size
-    
-#     def put(self, v):
-#         def _recursion_helper(n):
-#             nonlocal parentDepth
-#             if n is None:
-#                 return BTNodeWithDepth(v, parentDepth + 1)
-#             parentDepth = n.depth
-#             if n.value > v:
-#                 n.left = _recursion_helper(n.left)
-#             else:
-#                 n.right = _recursion_helper(n.right)
-#             return n    
-#         parentDepth = self.root.depth
-#         _recursion_helper(self.root)
-#         self._size += 1
+    def size(self):
+        return self._size
+    # insert v as for put for b search tree while keeping completeness and balance
+    def put(self, v):
+        def _recursion_helper(n, p, g):
+            nonlocal parentDepth, insert, parent, grant
+            if n is None:
+                insert = BTNodeWithDepth(v, parentDepth + 1)
+                parent = p
+                grant = g
+                return insert
+            parentDepth = n.depth
+            if n.value > v:
+                n.left = _recursion_helper(n.left, n, p)
+            else:
+                n.right = _recursion_helper(n.right, n, p)
+            return n    
+        parentDepth = 0 if self.root is None else self.root.depth
+        insert = self.root
+        parent = grant = None
+        _recursion_helper(insert, parent, grant)
+        self._size += 1
+        if (grant.left and grant.right) is None and (parent.left and parent.right) is None:
+            insert_depth = self._make_complete(insert, parent, grant)
+        if(self.root.value > v):
+            self.left_depth = insert_depth if insert_depth > self.left_depth else self.left_depth
+        else:
+            self.right_depth = insert_depth if insert_depth > self.right_depth else self.right_depth
+        if(abs(self.right_depth - self.left_depth) > 1):
+            self._make_balance()
+    # move the son to the same level as parent and rearrange the value
+    def _make_complete(self, son, parent, grant):
+        l = [son.value, parent.value, grant.value]
+        l.sort()
+        grant.left = son
+        son.value = l[0]
+        grant.right = parent
+        parent.value = l[2]
+        grant.value = l[1]
+        son.depth -= 1
+        return son.depth
+    # keep upgrading the first node in the longer_side branch to the root till the depth differnece is 1 or less
+    def _make_balance(self):
+        while(abs(self.left_depth - self.right_depth) > 1):
+            longer_side = "left" if self.left_depth > self.right_depth else "right"
+            shorter_side = "right" if longer_side == "left" else "left"
+            exec("new_root = self.root.{longer_side}")
+            exec("to_hand_over = new_root.{shorter_side}")
+            exec("new_root.{shorter_side} = self.root")
+            exec("self.root.{longer_side} = to_hand_over")
+            exec("self.root = new_root")
+            self.root.depth -= 1
+            exec("_increase_depth_by_one(self.root.{shorter_side})")
+            exec("_decrease_depth_by_one(self.root.{longer_side})")
+            exec("self.{longer_side}_depth -= 1")
+            exec("self.{shorter_side}_depth += 1")
+        
+        def _increase_depth_by_one(n):
+            if(n is None):
+                return
+            n.depth += 1
+            _increase_depth_by_one(n.left)
+            _increase_depth_by_one(n.right)
 
-
+        def _decrease_depth_by_one(n):
+            if(n is None):
+                return
+            n.depth -= 1
+            _decrease_depth_by_one(n.left)
+            _decrease_depth_by_one(n.right)
+    # update the depth for all nodes in the tree, based on the root with depth = 1
+    def update_depth(self):
+        def _recursion_helper(n, parent_depth):
+            if(n is None):
+                return parent_depth
+            n.depth = parent_depth + 1
+            _recursion_helper(n.left, n.depth)
+            _recursion_helper(n.right, n.depth)
+        if(self.root is None):
+            return
+        _recursion_helper(self.root, 0)
+    # remove only one node with value v while keep completeness and balance.
+    def remove(self, v):
+        pass
 
             
 
