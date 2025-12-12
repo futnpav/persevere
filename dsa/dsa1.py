@@ -360,7 +360,7 @@ class BTNode:
         self.value = v
         self.left = None
         self.right = None
-
+# allow duplicate values, which are dropped down
 class BST:
     def __init__(self):
         self.root = None
@@ -372,27 +372,40 @@ class BST:
     def size(self):
         return self._size
 
+    # def put(self, v):
+    #     if(self.root is None):
+    #         self.root = BTNode(v)
+    #         self._size += 1
+    #         return
+    #     current = self.root
+    #     while True:
+    #         if(current.value > v):
+    #             if(current.left is None):
+    #                 current.left = BTNode(v)
+    #                 self._size += 1
+    #                 break
+    #             else:
+    #                 current = current.left
+    #         else:
+    #             if(current.right is None):
+    #                 current.right = BTNode(v)
+    #                 self._size += 1
+    #                 break
+    #             else:
+    #                 current = current.right
+
     def put(self, v):
-        if(self.root is None):
-            self.root = BTNode(v)
-            self._size += 1
-            return
-        current = self.root
-        while True:
-            if(current.value > v):
-                if(current.left is None):
-                    current.left = BTNode(v)
-                    self._size += 1
-                    break
-                else:
-                    current = current.left
+        def _recursion_helper(n):
+            if(n is None):
+                return BTNode(v)
+            if(n.value > v):
+                n.left = _recursion_helper(n.left)
             else:
-                if(current.right is None):
-                    current.right = BTNode(v)
-                    self._size += 1
-                    break
-                else:
-                    current = current.right
+                n.right = _recursion_helper(n.right)
+            return n
+        self.root = _recursion_helper(self.root)
+        self._size += 1
+
 
     def bfs_traversal_queue(self):
         if(self.is_empty()):
@@ -427,7 +440,7 @@ class BST:
             _recursion_helper()
         _recursion_helper()
         return result
-    
+    # pre-order traversal starting from bottom left
     def dfs_traversal_stack(self):
         if(self.is_empty()):
             return []
@@ -442,7 +455,7 @@ class BST:
                     rights.push(current.right)
                 current = current.left
         return result
-    
+    # post-order traversal by recursion
     def dfs_traversal_recursive(self):
         if(self.is_empty()):
             return []
@@ -459,106 +472,103 @@ class BST:
     def dfs_has_recursive(self, v):
         if(self.is_empty()):
             return False
-        def _recursive_helper(n):
+        def _recursion_helper(n):
             if(n is None):
                 return False
             if(n.value == v):
                 return True
-            return _recursive_helper(n.left) or _recursive_helper(n.right)
-        return _recursive_helper(self.root)
+            if(n.value > v):
+                return _recursion_helper(n.left)
+            else:
+                return _recursion_helper(n.right)
+        return _recursion_helper(self.root)
     
     # return True if found and removed, otherwise False
-    def remove_via_closest_small(self, v):
-        if(self.is_empty()):
-            return False
-        parent = None
-        current = self.root
-        while(current is not None and current.value != v):
-            parent = current
-            if(current.value > v):
-                current = current.left
-            else:
-                current = current.right
-        if(current is None):
-            return False
-        # at this point, current is the node to be removed
-        # case 1: current has no or only one child
-        insert_at = "left" if parent.left == current else "right"
-        if(current.left is None and current.right is None):
-            parent.eval(insert_at) = None
-        elif(current.left is None):
-            parent.eval(insert_at) = current.right
-        elif(current.right is None):
-            parent.eval(insert_at) = current.left
-        # unfortunately two children
-        else:
-            # replace current with the closest smaller one
+    # def remove_substitute_closest_small(self, v):
+    #     if(self.is_empty()):
+    #         return False
+    #     parent = None
+    #     current = self.root
+    #     while(current is not None and current.value != v):
+    #         parent = current
+    #         if(current.value > v):
+    #             current = current.left
+    #         else:
+    #             current = current.right
+    #     if(current is None):
+    #         return False
+    #     # at this point, current is the node to be removed
+    #     # case 1: current has no or only one child
+    #     break_at = "left" if parent.left == current else "right"
+    #     if(current.left is None and current.right is None):
+    #         exec(f"parent.{break_at} = None")
+    #     elif(current.left is None):
+    #         exec(f"parent.{break_at} = current.right")
+    #     elif(current.right is None):
+    #         exec(f"parent.{break_at} = parent.left")
+    #     # unfortunately two children
+    #     else:
+    #         # replace current with the closest smaller one
+    #         successor_parent = current
+    #         successor = current.left
+    #         while(successor.right is not None):
+    #             successor_parent = successor
+    #             successor = successor.right
+    #         current.value = successor.value
+    #         if(successor_parent == current):
+    #             successor_parent.left = successor.left
+    #         else:
+    #             successor_parent.right = successor.left
+    #     self._size -= 1
+    #     return True
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def find_smallest_child(self, n):
+        def _recursion_helper(n):
+            if(n is None):
+                return n
+            if(n.left is None):
+                return n
+            return _recursion_helper(n.left)
+        return _recursion_helper(n)
     
-    def remove_via_closest_small(self, v):
-        if(self.is_empty()):
-            return None
-        parent = None
-        current = self.root
-        while(current is not None and current.value != v):
-            parent = current
-            if(current.value > v):
-                current = current.left
-            else:
-                current = current.right
-        if(current is None):
-            return None  # value not found
-        # Case 1: Node with only one child or no child
-        if(current.left is None or current.right is None):
-            new_child = current.left if current.left is not None else current.right
-            if(parent is None):
-                self.root = new_child
-            else:
-                if(parent.left == current):
-                    parent.left = new_child
+    def find_largest_child(self, n):
+        def _recursion_helper(n):
+            if(n is None):
+                return n
+            if(n.right is None):
+                return n
+            return _recursion_helper(n.right)
+        return _recursion_helper(n)
+    
+    # return True if found and removed, otherwise False
+    def remove_left_branch_up(self, v):
+        # break when found or hit the bottom
+        found = False
+        def _recursion_helper(n):
+            nonlocal found
+            if(n is None):
+                return None
+            if(n.value == v):
+                found = True
+                if(n.right is None):
+                    return n.left
                 else:
-                    parent.right = new_child
-        else:
-            # Case 2: Node with two children
-            successor_parent = current
-            successor = current.left
-            while(successor.right is not None):
-                successor_parent = successor
-                successor = successor.right
-            current.value = successor.value
-            if(successor_parent.left == successor):
-                successor_parent.left = successor.left
+                    if(n.left is None):
+                        return n.right
+                    else:
+                        largestInLeftBranch = self.find_largest_child(n.left)
+                        largestInLeftBranch.right = n.right
+                        return n.left
+            if(n.value > v):
+                n.left = _recursion_helper(n.left)
             else:
-                successor_parent.right = successor.left
-        self._size -= 1
-        return v
-    
-
-
-
-
+                n.right = _recursion_helper(n.right)
+            return n        
+        _recursion_helper(self.root)
+        if(found == True):
+            self._size -= 1
+        return found
+        
 # bst = BST()
 # bst.put(50)
 # bst.put(30)
@@ -573,6 +583,49 @@ class BST:
 # print("DFS Traversal using Stack:", bst.dfs_traversal_stack())
 # print("DFS Traversal using Recursion:", bst.dfs_traversal_recursive())
 # print("DFS Has 60 using Recursion:", bst.dfs_has_recursive(100))
+# print("Remove 50 left branch up:", bst.remove_left_branch_up(50))
+# print("BFS Traversal after removal:", bst.bfs_traversal_queue())
+# print("BFS Traversal using Queue:", bst.bfs_traversal_queue())
+# print("BFS Traversal using Recursion:", bst.bfs_traversal_recursive())
+# print("DFS Traversal using Stack:", bst.dfs_traversal_stack())
+# print("DFS Traversal using Recursion:", bst.dfs_traversal_recursive())
+# print("DFS Has 60 using Recursion:", bst.dfs_has_recursive(100))
+
+
+# class BTNodeWithDepth:
+#     def __init__(self, v, d):
+#         self.value = v
+#         self.depth = d
+#         self.left = None
+#         self.right = None
+
+# class BSTCompleteBalanced:
+#     def __init__(self):
+#         self.root = None
+#         self._size = 0
+#         self.left_depth = 0
+#         self.right_depth = 0
+
+#     def is_empty(self):
+#         return self._size == 0
+    
+#     def size(self):
+#         return self._size
+    
+#     def put(self, v):
+#         def _recursion_helper(n):
+#             nonlocal parentDepth
+#             if n is None:
+#                 return BTNodeWithDepth(v, parentDepth + 1)
+#             parentDepth = n.depth
+#             if n.value > v:
+#                 n.left = _recursion_helper(n.left)
+#             else:
+#                 n.right = _recursion_helper(n.right)
+#             return n    
+#         parentDepth = self.root.depth
+#         _recursion_helper(self.root)
+#         self._size += 1
 
 
 
