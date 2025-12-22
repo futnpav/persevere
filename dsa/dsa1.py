@@ -522,7 +522,7 @@ class BST:
     #     self._size -= 1
     #     return True
 
-    def find_smallest_child(self, n):
+    def get_smallest(self, n):
         def _recursion_helper(n):
             if(n is None):
                 return n
@@ -531,7 +531,7 @@ class BST:
             return _recursion_helper(n.left)
         return _recursion_helper(n)
     
-    def find_largest_child(self, n):
+    def get_largest(self, n):
         def _recursion_helper(n):
             if(n is None):
                 return n
@@ -556,7 +556,7 @@ class BST:
                     if(n.left is None):
                         return n.right
                     else:
-                        largestInLeftBranch = self.find_largest_child(n.left)
+                        largestInLeftBranch = self.get_largest(n.left)
                         largestInLeftBranch.right = n.right
                         return n.left
             if(n.value > v):
@@ -600,6 +600,7 @@ class BTNodeWithDepth:
         self.right = None
 # each node keeps its own depth starting from 1
 # ensure completeness rearranging values in case of insertion to a single parent
+# left_depth & right_depth not counting root depth hence starting, e.g. left_depth is 0 when root.left is None
 class BSTCompleteBalanced:
     def __init__(self):
         self.root = None
@@ -662,38 +663,94 @@ class BSTCompleteBalanced:
             exec("self.root.{longer_side} = to_hand_over")
             exec("self.root = new_root")
             self.root.depth -= 1
-            exec("_increase_depth_by_one(self.root.{shorter_side})")
-            exec("_decrease_depth_by_one(self.root.{longer_side})")
+            exec("increase_depth_by_one(self.root.{shorter_side})")
+            exec("decrease_depth_by_one(self.root.{longer_side})")
             exec("self.{longer_side}_depth -= 1")
             exec("self.{shorter_side}_depth += 1")
         
-        def _increase_depth_by_one(n):
-            if(n is None):
-                return
-            n.depth += 1
-            _increase_depth_by_one(n.left)
-            _increase_depth_by_one(n.right)
+    def increase_depth_by_one(self, n):
+        if(n is None):
+            return
+        n.depth += 1
+        self.increase_depth_by_one(n.left)
+        self.increase_depth_by_one(n.right)
 
-        def _decrease_depth_by_one(n):
-            if(n is None):
-                return
-            n.depth -= 1
-            _decrease_depth_by_one(n.left)
-            _decrease_depth_by_one(n.right)
-    # update the depth for all nodes in the tree, based on the root with depth = 1
-    def update_depth(self):
+    def decrease_depth_by_one(self, n):
+        if(n is None):
+            return
+        n.depth -= 1
+        self.decrease_depth_by_one(n.left)
+        self.decrease_depth_by_one(n.right)
+    # update the depth for all nodes in the tree, based on the root with depth = 1. Doesn't seem to be useful though as depth is updated upon every update
+    def update_branch_depth(self):
         def _recursion_helper(n, parent_depth):
+            nonlocal cur_deepest
             if(n is None):
-                return parent_depth
+                cur_deepest = parent_depth - 1 if parent_depth - 1 > cur_deepest else cur_deepest
+                return
             n.depth = parent_depth + 1
             _recursion_helper(n.left, n.depth)
             _recursion_helper(n.right, n.depth)
         if(self.root is None):
-            return
-        _recursion_helper(self.root, 0)
+            self.left_depth = self.right_depth = 0
+        cur_deepest = 0
+        _recursion_helper(self.left, 1)
+        self.left_depth = cur_deepest
+        cur_deepest = 0
+        _recursion_helper(self.right, 1)
+        self.right_depth = cur_deepest
+    
+    def get_smallest(self, n):
+        def _recursion_helper(n):
+            if(n.left is None):
+                return n
+            return _recursion_helper(n.left)
+        if(n is None):
+            return None
+        return _recursion_helper(n)
+    
+    def get_largest(self, n):
+        def _recrusion_helper(n):
+            if(n.right is None):
+                return n
+            return _recrusion_helper(n.right)
+        if(n is None):
+            return None
+        return _recrusion_helper(n)
+        
     # remove only one node with value v while keep completeness and balance.
+    # remove True if one node with value V is successfully removed, otherwise False
     def remove(self, v):
-        pass
+        def _recursion_helper(p, n):
+            nonlocal the_parent, the_node
+            if(n is None):
+                return False
+            if(n.value == v):
+                the_parent = p
+                the_node = n
+                return True
+            if(n.value > v):
+                return _recursion_helper(n, n.left)
+            else:
+                return _recursion_helper(n, n.right) 
+        if(self.is_empty()):
+            return False 
+        the_parent = the_node = None
+        if(_recursion_helper(None, self.root) == False):
+            return False
+        if(the_node.left is None):
+            if(the_node.right is None):
+                if(the_parent.left == the_node):
+                    the_parent.left = None
+                else:
+                    the_parent.right = None
+            else:
+                if(the_parent.left == the_node):
+                    the_parent.left = the_node.right
+                else:
+                    the_parent.right = the_node.right
+        
+        return True
 
             
 
