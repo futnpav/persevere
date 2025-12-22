@@ -681,6 +681,21 @@ class BSTCompleteBalanced:
         n.depth -= 1
         self.decrease_depth_by_one(n.left)
         self.decrease_depth_by_one(n.right)
+    # err if not return True
+    def update_child_depth(p):
+        def _recursion_helper(p):
+            if p is None:
+                return True
+            if p.left is not None:
+                p.left.depth = p.depth + 1
+                return _recursion_helper(p.left)
+            if p.right is not None:
+                p.right.depth = p.depth + 1
+                return _recursion_helper(p.right)
+            return False
+        if p is None:
+            return False
+        return _recursion_helper(p)
     # update the depth for all nodes in the tree, based on the root with depth = 1. Doesn't seem to be useful though as depth is updated upon every update
     def update_branch_depth(self):
         def _recursion_helper(n, parent_depth):
@@ -717,6 +732,17 @@ class BSTCompleteBalanced:
         if(n is None):
             return None
         return _recrusion_helper(n)
+    # return False if p is None or n is not a child of p, otherwise replace ref to n with that to nn in p
+    def _replace_child(p, n, nn):
+        if p is None:
+            return False
+        if p.left == n:
+            p.left == nn
+            return True
+        if p.right == n:
+            p.right == nn
+            return True
+        return False
         
     # remove only one node with value v while keep completeness and balance.
     # remove True if one node with value V is successfully removed, otherwise False
@@ -733,22 +759,31 @@ class BSTCompleteBalanced:
                 return _recursion_helper(n, n.left)
             else:
                 return _recursion_helper(n, n.right) 
+            
         if(self.is_empty()):
-            return False 
+            return False
         the_parent = the_node = None
         if(_recursion_helper(None, self.root) == False):
             return False
+        # the value to remove is found. 3 scenarios depending on the number of children the node has as follows
+        # 1. no child
+        if the_node.left is None and the_node.right is None:
+            self._replace_child(the_parent, the_node, None)
+        # 2. one Child
         if(the_node.left is None):
-            if(the_node.right is None):
-                if(the_parent.left == the_node):
-                    the_parent.left = None
-                else:
-                    the_parent.right = None
-            else:
-                if(the_parent.left == the_node):
-                    the_parent.left = the_node.right
-                else:
-                    the_parent.right = the_node.right
+            self.decrease_depth_by_one(the_node.right)
+            self._replace_child(the_parent, the_node, the_node.right)
+        if(the_node.right is None):
+            self.decrease_depth_by_one(the_node.left)
+            self._replace_child(the_parent, the_node, the_node.left)
+        # 3. both children, snap the left child and hook to the smallest one in the right branch
+        smallest_right = self.get_smallest(the_node.right)
+        smallest_right.left = the_node.left
+        self.update_child_depth(smallest_right)
+        the_parent.right = the_node.right
+        self.decrease_depth_by_one(the_parent.right)
+        
+        self._make_balance()
         
         return True
 
