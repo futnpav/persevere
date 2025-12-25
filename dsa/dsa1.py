@@ -784,6 +784,8 @@ class BSTCompleteBalanced:
         self.decrease_depth_by_one(the_parent.right)
         
         self._make_balance()
+
+        # test commit to the new repo
         
         return True
 
