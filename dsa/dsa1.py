@@ -785,7 +785,7 @@ class BSTCompleteBalanced:
         
         self._make_balance()
 
-        # test commit to the new repo iMac 24
+        # test commit to the new repo iMac 24 then from iMac 27
         
         return True
 
