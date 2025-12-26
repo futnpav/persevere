@@ -787,6 +787,8 @@ class BSTCompleteBalanced:
 
         # test commit to the new repo
         
+        # test commit to new local repo
+
         return True
 
             
