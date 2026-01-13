@@ -1,3 +1,5 @@
+import math
+
 # List and Arrays
 my_list = [3, 45, 6, 1, 6, 8, -9]
 minVal = my_list[0]
@@ -303,14 +305,14 @@ class LinkedList:
         
 
 class HashTable:
-        def __init__(self):
+        def __init__(self, store_size = 1000):
             self._store = []
-            for _ in range(10):
+            for _ in range(store_size):
                 self._store.append([])
             self._size = 0
 
         def _get_index(self, v):
-            return hash(v) % 10
+            return hash(v) % len(self._store)
 
         def is_empty(self):
             return self._size == 0
@@ -326,21 +328,21 @@ class HashTable:
             if(self.is_empty()):
                 return False
             index = self._get_index(v)
-            if(self._store[index] is None):
+            if(len(self._store[index]) == 0):
                 return False
             return v in self._store[index]
-        # return v if removed; None if not found
+        # return True if removed; False if not found
         def remove(self, v):
             if(self.is_empty()):
-                return None
+                return False
             index = self._get_index(v)
-            if(self._store[self._get_index(v)] is None):
-                return None
-            if(v in self._store[self._get_index(v)]):
-                self._store[self._get_index(v)].remove(v)
+            if(len(self._store[index]) == 0):
+                return False
+            if(v in self._store[index]):
+                self._store[index].remove(v)
                 self._size -= 1
-                return v
-            return None
+                return True
+            return False
 
 # ht = HashTable()
 # print("is hash table empty?:", ht.is_empty())
@@ -532,13 +534,421 @@ class BST:
 
 
 class AVLNode:
-    def __init__(self, v = None, d = 1):
+    def __init__(self, v = None):
         self.value = v
-        self.height = d
+        self.height = 1
         self.left = None
         self.right = None
+# allows duplicate values, which are dropped to the right. Deletion removes
+# the first found occurrence.
+class AVLTree:
+    def __init__(self):
+        self.root = None
+        self._size = 0
+        
+    def is_empty(self):
+        return self._size == 0
+    
+    def size(self):
+        return self._size
+    
+    def get_height(self, n):
+        if(n is None):
+            return 0
+        return n.height
+    
+    def get_balance_factor(self, n):
+        if n is None:
+            return 0
+        return self.get_height(n.left) - self.get_height(n.right)
+    
+    def right_rotate(self, top):
+        if top is None or top.left is None:
+            raise Exception("can't rotate on None top or None top.left")
+        new_top = top.left
+        hand_over = new_top.right
+        new_top.right = top
+        top.left = hand_over
+        top.height = 1 + max(self.get_height(top.left), self.get_height(top.right))
+        new_top.height = 1 + max(self.get_height(new_top.left), self.get_height(new_top.right))
+        return new_top
+    
+    def left_rotate(self, top):
+        if top is None or top.right is None:
+            raise Exception("can't rotate on None top or None top.right")
+        new_top = top.right
+        hand_over = new_top.left
+        new_top.left = top
+        top.right = hand_over
+        top.height = 1 + max(self.get_height(top.left), self.get_height(top.right))
+        new_top.height = 1 + max(self.get_height(new_top.left), self.get_height(new_top.right))
+        return new_top
+    
+    def put(self, v):
+        def recursion_helper(n):
+            if(n is None):
+                return AVLNode(v)
+            if(v < n.value):
+                n.left = recursion_helper(n.left)
+            else:
+                n.right = recursion_helper(n.right)
+            n.height = 1 + max(self.get_height(n.left), self.get_height(n.right))
+            n = self._rebalance(n)
+            return n
+        if self.root is None:
+            self.root = AVLNode(v)
+        else:
+            self.root = recursion_helper(self.root)
+        self._size += 1
+    # check the balance from top downwards, rebalance and adjust heights afterwwards should inbalance be found.
+    # return the new top after rebalancing (thru rotation)
+    def _rebalance(self, top):
+        bf = self.get_balance_factor(top)
+        if(bf > 1):
+            if(self.get_balance_factor(top.left) >= 0):
+                return self.right_rotate(top)
+            else:
+                top.left = self.left_rotate(top.left)
+                return self.right_rotate(top)
+        if(bf < -1):
+            if(self.get_balance_factor(top.right) <= 0):
+                return self.left_rotate(top)
+            else:
+                 top.right = self.right_rotate(top.right)
+                 return self.left_rotate(top)
+        return top
 
+    def remove(self, v):
+        def recursion_helper(n):
+            the_largest = None
+            nonlocal deleted
+            def pop_largest(n):
+                nonlocal the_largest
+                if(n is None):
+                    return None
+                if(n.right is None):
+                    the_largest = n
+                    return n.left
+                n.right = pop_largest(n.right)
+                n.height = 1 + max(self.get_height(n.left), self.get_height(n.right))
+                return self._rebalance(n)
+            if n is None: # not found
+                return None
+            if v < n.value:
+                n.left = recursion_helper(n.left)
+            elif v > n.value:
+                n.right = recursion_helper(n.right)
+            else:  # now n is the node to be removed
+                deleted = True
+                if(n.left is None):
+                    return n.right
+                elif(n.right is None):
+                    return n.left
+                else:
+                    n.left = pop_largest(n.left)
+                    n.value = the_largest.value
+            n.height = 1 + max(self.get_height(n.left), self.get_height(n.right))
+            return self._rebalance(n)
+        if self.root is None:
+            return False
+        else:
+            deleted = False
+            self.root = recursion_helper(self.root)
+            self._size -= 1 if deleted else 0
+            return deleted
+        
+    def bfs_traversal_queue(self):
+        if(self.is_empty()):
+            return []
+        result = []
+        queue = LinkedListQueue()
+        queue.enqueue(self.root)
+        while(not queue.is_empty()):
+            head = queue.dequeue()
+            result.append(head.value)
+            if(head.left is not None):
+                queue.enqueue(head.left)
+            if(head.right is not None):
+                queue.enqueue(head.right)
+        return result
+    # order can be "inorder", "preorder", "postorder"
+    def dfs_traversal_recursive(self, order : str = "inorder"):
+        if(self.is_empty()):
+            return []
+        result = []
+        def _recursion_helper(n):
+            if(n is None):
+                return
+            if(order == "preorder"):
+                result.append(n.value)
+            _recursion_helper(n.left)
+            if(order == "inorder"):
+                result.append(n.value)
+            _recursion_helper(n.right)
+            if(order == "postorder"):
+                result.append(n.value)
+        _recursion_helper(self.root)
+        return result
+    
+    # order can be "inorder", "preorder", "postorder"
+    def dfs_traversal_recursive_2(self, order : str = "inorder"):
+        if(self.is_empty()):
+            return []
+        result = []
+        def _recursion_helper(n):
+            return [n.value] if order == "preorder" else [] + \
+                    _recursion_helper(n.left) + \
+                    [n.value] if order == "inorder" else [] + \
+                    _recursion_helper(n.right) + \
+                    [n.value] if order == "postorder" else []
+        result = _recursion_helper(self.root)
+        return result
 
+# avl = AVLTree()
+# avl.put(30)
+# avl.put(20)
+# avl.put(25)
+# avl.put(10)
+# avl.put(40)
+# avl.put(50)
+# avl.put(5)
+# print("BFS Traversal using Queue:", avl.bfs_traversal_queue())
+# avl.remove(30)
+# print("BFS Traversal after removing 30:", avl.bfs_traversal_queue())
+# avl.remove(10)
+# print("BFS Traversal after removing 10:", avl.bfs_traversal_queue())
+# avl.remove(25)
+# print("BFS Traversal after removing 25:", avl.bfs_traversal_queue())
+# avl.remove(100)
+# print("BFS Traversal after removing 100 (not found):", avl.bfs_traversal_queue())
+# print("Size of AVL Tree:", avl.size())
+# print("Is AVL Tree empty?:", avl.is_empty())
+# print("DFS Inorder Traversal:", avl.dfs_traversal_recursive("inorder"))
+# print("DFS Preorder Traversal:", avl.dfs_traversal_recursive("preorder"))
+# print("DFS Postorder Traversal:", avl.dfs_traversal_recursive("postorder"))
+
+class NilRBNode():
+    def __init__(self, color : str = "black"):
+        self.value = None
+        self.color = "black"  # "red", "black", or "double black"
+        self.left = None
+        self.right = None
+class RBNode:
+    def __init__(self, v = None, color : str = "red"):
+        self.value = v
+        self.color = color  # "red", "black", or "double black"
+        self.left = NilRBNode()
+        self.right = NilRBNode()
+# prevents duplicate values, using a hash table to help detect duplicates on insertion
+class RBTree:
+    def __init__(self):
+        self.root = NilRBNode()
+        self._size = 0
+        self.table = HashTable()
+
+    def is_empty(self):
+        return self._size == 0
+    
+    def size(self):
+        return self._size
+    
+    def left_rotate(self, top):
+        new_top = top.right
+        hand_over = new_top.left
+        top.right = hand_over
+        new_top.left = top
+        return new_top
+    
+    def right_rotate(self, top):
+        new_top = top.left
+        hand_over = new_top.right
+        top.left = hand_over
+        new_top.right = top
+        return new_top
+    
+    def put(self, v):
+        def _recursion_helper(n):
+            nonlocal grandchild, child, resolved, just_inserted
+            if(isinstance(n, NilRBNode)):
+                new_node = RBNode(v)
+                grandchild = new_node
+                return new_node
+            elif(v < n.value):
+                n.left = _recursion_helper(n.left)
+            else:
+                n.right = _recursion_helper(n.right)
+            # now check for violations and fix
+            if(resolved):
+                return n
+            if(isinstance(child, NilRBNode)):
+                child = n
+                just_inserted = True
+                return n
+            else:
+                # handle violations
+                if(grandchild.color == "red"):
+                    if(child.color == "red"):
+                        sibling = n.right if child == n.left else n.left
+                        if(isinstance(sibling, NilRBNode) or sibling.color == "black"):
+                            # rotation cases
+                            if(child == n.left):
+                                if(grandchild == child.left):
+                                    new_top = self.right_rotate(n)
+                                else:
+                                    n.left = self.left_rotate(child)
+                                    new_top = self.right_rotate(n)
+                            else:
+                                if(grandchild == child.right):
+                                    new_top = self.left_rotate(n)
+                                else:
+                                    n.right = self.right_rotate(child)
+                                    new_top = self.left_rotate(n)
+                            new_top.color = "black"
+                            new_top.left.color = "red"
+                            new_top.right.color = "red"
+                            resolved = True # red red conflict resolved locally, terminate checking
+                            return new_top
+                        else:
+                            # swap the color between n and both children, double red is removed but
+                            # n is red now. Need to bubble up the checking
+                            child.color = "black"
+                            sibling.color = "black"
+                            n.color = "red"
+                            grandchild = child
+                            child = n
+                            return n
+                    else:
+                        if just_inserted: # insertion doesn't cause red red conflick, terminate checking
+                            resolved = True
+                            just_inserted = False # not needded practically, only needed for logic mysophobia
+            return n
+        if(self.table.has(v)):
+            return False
+        if(isinstance(self.root, NilRBNode)):
+            self.root = RBNode(v, "black")
+        else:
+            grandchild = child = NilRBNode()
+            resolved = just_inserted = False
+            self.root = _recursion_helper(self.root)
+        self.root.color = "black"
+        self.table.put(v)
+        self._size += 1
+        return True
             
+    def remove(self, v):
+        def _recursion_helper(p, n):
+            if(v < n.value):
+                n.left = _recursion_helper(n, n.left)
+                node_to_check = n.left
+            elif(v > n.value):
+                n.right = _recursion_helper(n, n.right)
+                node_to_check = n.right
+            else:
+                if(isinstance(n.left, NilRBNode)):
+                    if(isinstance(n.right, NilRBNode)):
+                        nil = NilRBNode()
+                        if n.color == "black":
+                            nil.color = "double black"
+                        return nil
+                    else:
+                        if(n.color == "black"):
+                            if(n.right.color == "black"):
+                                n.right.color = "double black"
+                            else:
+                                n.right.color = "black"
+                        return n.right
+                elif(isinstance(n.right, NilRBNode)):
+                    if n.color == "black":
+                        if(n.left.color == "black"):
+                            n.left.color = "double black"
+                        else:
+                            n.left.color = "black"
+                    return n.left
+                else:
+                    # replace value with inorder successor
+                    return self._replace_with_inorder_successor(n)
+            if node_to_check.color == "double black":
+                return _fix_double_black_child(n, node_to_check)
+            return n   
+        if self.is_empty() or not self.table.has(v):
+            return False
+        self.root = _recursion_helper(None, self.root)
+        if self.root.color == "double black":
+            self.root.color = "black"
+        self.table.remove(v)
+        self._size -= 1
+        return True
+    # replace t.value with that of the inorder successor, fix balance or bubble up double black afterwords
+    # requires: t.right is not nil
+    def _replace_with_inorder_successor(self, t):
+        def _recursion_helper(n):
+            if(isinstance(n.left, NilRBNode)):
+                t.value = n.value
+                if(n.color == "black"):
+                    if n.right.color == "black":
+                        n.right.color = "double black"
+                    else:
+                        n.right.color = "black"
+                return n.right
+            n.left = _recursion_helper(n.left)
+            if(n.left.color == "double black"):
+                n = self._fix_double_black_child(n, n.left)
+            return n
+        t.right = _recursion_helper(t.right)
+        if(t.right.color == "double black"):
+            t = self._fix_double_black_child(t, t.right)
+        return t
+    # fix the double black node n, if can't fix move the double black flag to p
+    def _fix_double_black_child(self, n, child):
+        sibling = n.left if n.right == child else n.right
+        # red sibling, rotate inwards: sibling becomes new_top, its medial child becomes new sibling
+        if sibling.color == "red": # indicates black for n, sibling.left and sibling.right
+            if n.left == child:
+                new_top = self.left_rotate(n)
+            else:
+                new_top = self.right_rotate(n)
+            new_top.color = "black"
+            n.color = "red"
+            if n.left == child:
+                new_top.left = self._fix_double_black_child(n, child)
+            else:
+                new_top.right = self._fix_double_black_child(n, child)
+            return new_top
+        else: # black sibling
+            if n.left == child: # double black on the left side
+                if(not isinstance(sibling.right, NilRBNode) and sibling.right.color == "red"): # lateral red sibling child
+                    new_top = self.left_rotate(n)
+                    new_top.color = n.color
+                    new_top.right.color = "red"
+                    n.color = "black"
+                    child.color = "black"
+                elif(not isinstance(sibling.left, NilRBNode) and sibling.left.color == "red"): # medial red sibling child
+                    n.right = self.right_rotate(sibling)
+                    new_top = self.left_rotate(n)
+                    new_top.color = n.color
+                    n.color = "black"
+                    child.color = "black"
+            else: # double black on the right side
+                if(not isinstance(sibling.left, NilRBNode) and sibling.left.color == "red"):
+                    new_top = self.right_rotate(n)
+                    new_top.color = n.color
+                    new_top.left.color = "black"
+                    n.color = "black"
+                    child.color = "black"
+                elif(not isinstance(sibling.right, NilRBNode) and sibling.right.color == "red"):
+                    n.left = self.left_rotate(sibling)
+                    new_top = self.right_rotate(n)
+                    new_top.color = n.color
+                    n.color = "black"
+                    child.color = "black"
+            if((isinstance(sibling.left, NilRBNode) or sibling.left.color == "black") and \
+                (isinstance(sibling.right, NilRBNode) or sibling.right.color == "black")):
+                new_top = n
+                child.color = "red"
+                if(n.color == "red"):
+                    n.color = "black"
+                else:
+                    n.color = "double black"
+            return new_top
 
 
