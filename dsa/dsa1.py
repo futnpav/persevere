@@ -831,9 +831,6 @@ class RBTree:
             resolved = just_inserted = False
             self.root = _recursion_helper(self.root)
         self.root.color = "black"
-        self.table.put(v)
-        self._size += 1
-        return True
             
     def remove(self, v):
         def _recursion_helper(p, n):
