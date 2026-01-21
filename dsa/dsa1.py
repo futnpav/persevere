@@ -110,7 +110,7 @@ class ArrayQueue:
     def enqueue(self, v):
         self._store.append(v)
 
-    def dequene(self):
+    def dequeue(self):
         if(self.is_empty()):
             return None
         return self._store.pop(0)
@@ -727,24 +727,18 @@ class AVLTree:
 # print("DFS Preorder Traversal:", avl.dfs_traversal_recursive("preorder"))
 # print("DFS Postorder Traversal:", avl.dfs_traversal_recursive("postorder"))
 
-class NilRBNode():
-    def __init__(self, color : str = "black"):
-        self.value = None
-        self.color = "black"  # "red", "black", or "double black"
-        self.left = None
-        self.right = None
 class RBNode:
     def __init__(self, v = None, color : str = "red"):
         self.value = v
         self.color = color  # "red", "black", or "double black"
-        self.left = NilRBNode()
-        self.right = NilRBNode()
-# prevents duplicate values, using a hash table to help detect duplicates on insertion
+        self.left = None
+        self.right = None
 class RBTree:
     def __init__(self):
-        self.root = NilRBNode()
+        self.nil = RBNode(color = "black")
+        self.root = self.nil
         self._size = 0
-        self.table = HashTable()
+        # self.table = HashTable()
 
     def is_empty(self):
         return self._size == 0
@@ -768,10 +762,12 @@ class RBTree:
     
     def put(self, v):
         def _recursion_helper(n):
-            nonlocal grandchild, child, resolved, just_inserted
-            if(isinstance(n, NilRBNode)):
+            nonlocal grandchild, child, resolved, need_attention
+            if(n is self.nil):
                 new_node = RBNode(v)
+                new_node.left = new_node.right = self.nil
                 grandchild = new_node
+                self._size += 1
                 return new_node
             elif(v < n.value):
                 n.left = _recursion_helper(n.left)
@@ -780,16 +776,16 @@ class RBTree:
             # now check for violations and fix
             if(resolved):
                 return n
-            if(isinstance(child, NilRBNode)):
+            if(child is self.nil):
                 child = n
-                just_inserted = True
+                need_attention = True
                 return n
             else:
                 # handle violations
                 if(grandchild.color == "red"):
                     if(child.color == "red"):
-                        sibling = n.right if child == n.left else n.left
-                        if(isinstance(sibling, NilRBNode) or sibling.color == "black"):
+                        other_child = n.right if child == n.left else n.left
+                        if(other_child is self.nil or other_child.color == "black"):
                             # rotation cases
                             if(child == n.left):
                                 if(grandchild == child.left):
@@ -812,140 +808,272 @@ class RBTree:
                             # swap the color between n and both children, double red is removed but
                             # n is red now. Need to bubble up the checking
                             child.color = "black"
-                            sibling.color = "black"
+                            other_child.color = "black"
                             n.color = "red"
                             grandchild = child
                             child = n
                             return n
                     else:
-                        if just_inserted: # insertion doesn't cause red red conflick, terminate checking
+                        if need_attention: # insertion doesn't cause red red conflick, terminate checking
                             resolved = True
-                            just_inserted = False # not needded practically, only needed for logic mysophobia
+                            need_attention = False # not needded practically, only needed for logic mysophobia
+            grandchild = child
+            child = n
             return n
-        if(self.table.has(v)):
-            return False
-        if(isinstance(self.root, NilRBNode)):
+        if(self.root is self.nil):
             self.root = RBNode(v, "black")
+            self.root.left = self.root.right = self.nil
         else:
-            grandchild = child = NilRBNode()
-            resolved = just_inserted = False
+            grandchild = child = self.nil
+            resolved = need_attention = False
             self.root = _recursion_helper(self.root)
         self.root.color = "black"
-            
+    # remove node in case of nil or one child returns deleted:bool
     def remove(self, v):
+        # remove node in case of nil or one child
+        # replace value with that of in order successor in case of two children
+        # return deleted:bool, db_color:bool, and the new/updated node in the place of the removed
+        # db_color indicate whether the new/updated node is double black
         def _recursion_helper(p, n):
-            if(v < n.value):
-                n.left = _recursion_helper(n, n.left)
-                node_to_check = n.left
+            if(n is self.nil):
+                return False, False, self.nil
+            elif(v < n.value):
+                deleted, db_returned, n.left = _recursion_helper(n, n.left)
+                last_node = n.left
             elif(v > n.value):
-                n.right = _recursion_helper(n, n.right)
-                node_to_check = n.right
+                deleted, db_returned, n.right = _recursion_helper(n, n.right)
+                last_node = n.right
             else:
-                if(isinstance(n.left, NilRBNode)):
-                    if(isinstance(n.right, NilRBNode)):
-                        nil = NilRBNode()
-                        if n.color == "black":
-                            nil.color = "double black"
-                        return nil
-                    else:
-                        if(n.color == "black"):
-                            if(n.right.color == "black"):
-                                n.right.color = "double black"
-                            else:
-                                n.right.color = "black"
-                        return n.right
-                elif(isinstance(n.right, NilRBNode)):
-                    if n.color == "black":
-                        if(n.left.color == "black"):
-                            n.left.color = "double black"
-                        else:
-                            n.left.color = "black"
-                    return n.left
+                deleted_node = n
+                db_returned = False
+                if(n.left is not self.nil and n.right is not self.nil):
+                    db_returned, n = self._replace_value_with_inorder_successor(n)
+                    return True, db_returned, n
                 else:
-                    # replace value with inorder successor
-                    return self._replace_with_inorder_successor(n)
-            if node_to_check.color == "double black":
-                return _fix_double_black_child(n, node_to_check)
-            return n   
-        if self.is_empty() or not self.table.has(v):
-            return False
-        self.root = _recursion_helper(None, self.root)
-        if self.root.color == "double black":
-            self.root.color = "black"
-        self.table.remove(v)
-        self._size -= 1
-        return True
-    # replace t.value with that of the inorder successor, fix balance or bubble up double black afterwords
-    # requires: t.right is not nil
-    def _replace_with_inorder_successor(self, t):
-        def _recursion_helper(n):
-            if(isinstance(n.left, NilRBNode)):
-                t.value = n.value
-                if(n.color == "black"):
-                    if n.right.color == "black":
-                        n.right.color = "double black"
+                    if(n.left is self.nil):
+                        replacement_node = n.right
                     else:
+                        replacement_node = n.left
+                    if(deleted_node.color == "black"):
+                        if(replacement_node.color == "red"):
+                            replacement_node.color = "black"
+                        else:
+                            db_returned = True
+                    return True, db_returned, replacement_node
+            if db_returned:
+                db_returned, replacement_node = self._fix_double_black_child(n, last_node)
+                return True, db_returned, replacement_node
+            return True, False, n
+        if(self.is_empty()):
+            return False
+        deleted, db_top, self.root = _recursion_helper(None, self.root)
+        # if(db_returned):
+        #     self.root.color = "black"
+        if(deleted):
+            self._size -= 1
+        return deleted
+    # set the t.value to that of in order successor and remove the successor
+    # return the db_color:bool and updated t
+    # Assumption: t has both children
+    def _replace_value_with_inorder_successor(self, t):
+        def _recursion_helper(n):
+            if(n.left is self.nil):
+                t.value = n.value
+                db_returned = False
+                if(n.color == "black"):
+                    if(n.right.color == "red"):
                         n.right.color = "black"
-                return n.right
-            n.left = _recursion_helper(n.left)
-            if(n.left.color == "double black"):
-                n = self._fix_double_black_child(n, n.left)
-            return n
-        t.right = _recursion_helper(t.right)
-        if(t.right.color == "double black"):
-            t = self._fix_double_black_child(t, t.right)
-        return t
-    # fix the double black node n, if can't fix move the double black flag to p
+                    else:
+                        db_returned = True
+                return db_returned, n.right
+            db_returned, n.left = _recursion_helper(n.left)
+            if(db_returned):
+                return self._fix_double_black_child(n, n.left)
+            return False, n
+        db_returned, t.right = _recursion_helper(t.right)
+        if(db_returned):
+            return self._fix_double_black_child(t, t.right)
+        return False, t
+    # fix the double black child
+    # returns db_returned:bool, new_top(at the place of n)
+    # db_returned == True indicates double black has been bubbled up from child to new_top
     def _fix_double_black_child(self, n, child):
+        db_returned = False
         sibling = n.left if n.right == child else n.right
         # red sibling, rotate inwards: sibling becomes new_top, its medial child becomes new sibling
         if sibling.color == "red": # indicates black for n, sibling.left and sibling.right
             if n.left == child:
                 new_top = self.left_rotate(n)
+                new_top.color = "black"
+                n.color = "red"
+                db_returned, new_top.left = self._fix_double_black_child(n, child)
             else:
                 new_top = self.right_rotate(n)
-            new_top.color = "black"
-            n.color = "red"
-            if n.left == child:
-                new_top.left = self._fix_double_black_child(n, child)
-            else:
-                new_top.right = self._fix_double_black_child(n, child)
-            return new_top
+                new_top.color = "black"
+                n.color = "red"
+                db_returned, new_top.right = self._fix_double_black_child(n, child)
+            return db_returned, new_top # db_returned shall always be False
         else: # black sibling
             if n.left == child: # double black on the left side
-                if(not isinstance(sibling.right, NilRBNode) and sibling.right.color == "red"): # lateral red sibling child
+                if(sibling.right.color == "red"): # lateral red sibling child
                     new_top = self.left_rotate(n)
                     new_top.color = n.color
-                    new_top.right.color = "red"
+                    new_top.right.color = "black"
                     n.color = "black"
                     child.color = "black"
-                elif(not isinstance(sibling.left, NilRBNode) and sibling.left.color == "red"): # medial red sibling child
+                elif(sibling.left.color == "red"): # medial red sibling child
                     n.right = self.right_rotate(sibling)
                     new_top = self.left_rotate(n)
                     new_top.color = n.color
                     n.color = "black"
                     child.color = "black"
+                else:
+                    new_top = n
+                    child.color = "black"
+                    sibling.color = "red"
+                    if(n.color == "red"):
+                        n.color = "black"
+                    else:
+                        db_returned = True
             else: # double black on the right side
-                if(not isinstance(sibling.left, NilRBNode) and sibling.left.color == "red"):
+                if(sibling.left.color == "red"):
                     new_top = self.right_rotate(n)
                     new_top.color = n.color
                     new_top.left.color = "black"
                     n.color = "black"
                     child.color = "black"
-                elif(not isinstance(sibling.right, NilRBNode) and sibling.right.color == "red"):
+                elif(sibling.right.color == "red"):
                     n.left = self.left_rotate(sibling)
                     new_top = self.right_rotate(n)
                     new_top.color = n.color
                     n.color = "black"
                     child.color = "black"
-            if((isinstance(sibling.left, NilRBNode) or sibling.left.color == "black") and \
-                (isinstance(sibling.right, NilRBNode) or sibling.right.color == "black")):
-                new_top = n
-                child.color = "red"
-                if(n.color == "red"):
-                    n.color = "black"
                 else:
-                    n.color = "double black"
-            return new_top
+                    new_top = n
+                    child.color = "black"
+                    sibling.color = "red"
+                    if(n.color == "red"):
+                        n.color = "black"
+                    else:
+                        db_returned = True
+            return db_returned, new_top
+
+    # dump list of nodes as tuple (level, value, color, left_child_value, right_child_value)
+    def bfs_dump(self):
+        output = []
+        if(self.is_empty()):
+            return []
+        q = LinkedListQueue()
+        q.enqueue((0, self.root))
+        while not q.is_empty():
+            level, n = q.dequeue()
+            t = (level, n.value, n.color, n.left.value, n.right.value)
+            output.append(t)
+            if(n.left is not self.nil):
+                q.enqueue((level+1, n.left))
+            if(n.right is not self.nil):
+                q.enqueue((level+1, n.right))
+        return output
+    
+    def print_dump(self):
+        d = self.bfs_dump()
+        while len(d):
+            print(d.pop(0))
+
+rb = RBTree()
+rb.put(0)
+rb.put(1)
+rb.put(2)
+rb.put(3)
+rb.put(4)
+rb.put(5)
+
+# d = rb.bfs_dump()
+# while len(d):
+#     print(d.pop(0))
+
+rb.remove(1)
+
+d = rb.bfs_dump()
+while len(d):
+    print(d.pop(0))
+
+# ordinary min heap
+class MinHeap:
+    def __init__(self):
+        self.store = []
+
+    def is_empty(self):
+        return len(self.store) == 0
+    
+    def size(self):
+        return len(self.store)
+    
+    def get_parent(self, i):
+        if self.size() <= i:
+            return -1
+        return (i-1)//2
+        
+
+    def get_left_child(self, i):
+        if self.size() <= 2*i+1:
+            return -1
+        else:
+            return 2*i+1
+
+    def get_right_child(self, i):
+        if self.size() <= 2*i+2:
+            return -1
+        else:
+            return 2*i+2
+
+    def heapify_up(self, i):
+        if not (0 <= i < self.size()):
+            return -1
+        while i:
+            pi = self.get_parent(i)
+            if self.store[i] < self.store[pi]:
+                self.store[pi], self.store[i] = self.store[i], self.store[pi]
+                i = pi
+            else:
+                return i
+        
+    def heapify_down(self, i):
+        if not (0 <= i < self.size()):
+            return -1
+        while True:
+            l = self.get_left_child(i)
+            r = self.get_right_child(i)
+            if l == -1:
+                return i
+            elif r == -1:
+                smaller = l
+            else:
+                smaller = l if self.store[l] < self.store[r] else r
+            if(self.store[i] > self.store[smaller]):
+                self.store[smaller], self.store[i] = self.store[i], self.store[smaller]
+                i = smaller
+            else:
+                return i
+
+    def put(self, v):
+        self.store.append(v)
+        if self.size() > 1:
+            return self.heapify_up(self.size() - 1)
+        else:
+            return 0
+
+    def pop(self):
+        if self.size() == 0:
+            raise Exception("Empty heap")
+        if self.size() == 1:
+            return self.store.pop()
+        smallest = self.store[0]
+        self.store[0] = self.store.pop()
+        self.heapify_down(0)
+        return smallest
+    
+    # def sort(self):
+    #     pass
 
 
