@@ -1,297 +1,759 @@
-from __future__ import annotations
+import concurrent.futures
+import time
+# import dis
+import asyncio
+import sys
+# # from numpy import array
+# from util import dumb_add
+# from typing import Final
+import inspect
+import types
+import json
+import threading
+import queue
 from dataclasses import dataclass
-from enum import Enum
-from typing import Optional, Iterable, Generator, Any
+
+# Function to perform a CPU-bound task
+# def compute_factorial(n):
+#     result = 1
+#     for i in range(2, n + 1):
+#         result *= i
+#     return result
+
+# def main():
+#     numbers = [500, 600, 700, 800]
+
+#     # Using ProcessPoolExecutor to compute factorials concurrently
+#     start_time = time.time()
+
+#     with concurrent.futures.ProcessPoolExecutor() as executor:
+#         futures = [executor.submit(compute_factorial, num) for num in numbers]
+#         for future in concurrent.futures.as_completed(futures):
+#             pass
+#             # print(f"Factorial computed for number: {numbers[futures.index(future)]}:{str(future.result())}")
+
+#     end_time = time.time()
+#     # print(f"Computed all factorials in {end_time - start_time:.2f} seconds")
+
+# if __name__ == "__main__":
+#     main()
+
+# class Counter:
+# 	def __init__(self, n):
+# 		self.current = 1
+# 		self.n = n
+# 	def __iter__(self):
+# 		current = 1
+# 		while current <= self.n:
+# 			yield current
+# 			current += 1
+			
+
+# 	# def __next__(self):
+# 	# 	if self.current > self.n:
+# 	# 		raise StopIteration
+# 	# 	yield self.current
+# 	# 	self.current += 1
+        
+# c = Counter(5)
+
+# for i in c:
+# 	print(i)
+
+# def gen():
+#     yield 5
+
+# g = gen()
+# print("a")
+
+# class nothing:
+# 	def __init__(self):
+# 		self.n = 1
+        
+# 	def __next__(self):
+# 		raise StopIteration
+        
+# 	def __iter__(self):
+# 		return self
+        
+# nil = nothing()
+
+# for x in nil:
+#   print(x)
+
+    
+# def count_up_to(n):
+#     count = 1
+#     while count <= n:
+#         yield count
+#         count += 1
+
+# counter = count_up_to(5)
+
+# for i in counter:
+#     print(i)
+
+# def greeter():
+# 	name = yield "Hello! What is your name?"
+# 	yield f"Nice to meet you, {name}"
+
+# g = greeter()
+# print(next(g))          # "Hello! What is your name?"
+# print(g.send("Jerry"))  # "Nice to meet you, Jerry"
+
+# print(next(g))
+# print(g.sene("Paul"))
+
+# def my_generator():
+#   yield 1
+#   yield 2
+#   yield 3
+
+# g = my_generator()
+# print(next(g))
+# print(next(g))
+# print(next(g))
+# print(next(g))
+
+# def child():
+#     yield 1
+#     yield 2
+#     return "done"
+
+# def parent():
+#     result = yield from child()
+#     print("child returned:", result)
+
+# def counter(n):
+#     i = 0
+#     while i < n:
+#         yield f"this is the {i+1} time seeing you"
+#         i += 1
+
+# for i in counter(5):
+#     print(i)
+
+# def dump(gen, label):
+#     f = gen.gi_frame
+#     print(f"\n--- {label} ---")
+#     print("gen:", gen)
+#     print("gi_running:", gen.gi_running)
+#     print("gi_yieldfrom:", gen.gi_yieldfrom)
+#     if f is None:
+#         print("gi_frame: None (generator is finished)")
+#         return
+#     print("f_lineno:", f.f_lineno)
+#     print("f_lasti:", f.f_lasti)
+#     print("f_locals:", f.f_locals)
+
+# g = iter(Counter(5))
+# dump(g, "just reated (not started)")
+
+# print("next:", next(g))   # yields 1
+# dump(g, "after yielding 1")
+
+# print("next:", next(g))   # yields 2
+# dump(g, "after yielding 2")
+
+# def child():
+#     first = yield "First Child Name: "
+#     yield f"first child is {first}"
+#     second = yield "Second Child Name: "
+#     yield f"second child is {second}"
+#     return f"{first} and {second} only"
+
+# def parent():
+#     result = yield from child()
+#     print("child returned:", result)
+
+# p = iter(parent())
+# print(next(p))
+# print(p.send("Tom"))
+# print(next(p))
+# print(p.send("Jerry"))
+# try:
+#     next(p)
+# except StopIteration:
+#     pass
+
+# for i in p:
+#     # print("hello")
+#     print(i)
+
+# my_gen = (n for n in range(10))
+
+# for i in my_gen:
+#     print(i)
 
 
-class Color(Enum):
-    RED = 0
-    BLACK = 1
+
+# class natural_gen:
+#     def __init__(self, max = 20):
+#         self.max = max
+
+#     def __iter__(self):
+#         i = 0
+#         while i < self.max:
+#             yield i
+#             i += 1
+
+# class skipper:
+#     def __init__(self, max = 100, by = 3):
+#         self.n_gen = natural_gen(max)
+#         self.by = by
+
+#     def __iter__(self):
+#         return (i for i in self.n_gen if i % self.by == 0)
+
+# s = skipper(7, 100)
+
+# for i in s:
+    # print(i)
+
+# def multi_of(n):
+#     def by(m):
+#         print(f"by {m}")
+#         return n * m
+#     return by
+
+# threes = multi_of(3)
+
+# print(threes(100))
+
+# l = [x for x in range(5) if x % 2 == 0]
+# print(l)
+
+# g = {"a": 1}
+# l = {"b": 2}
+
+# print(locals())
+
+# discount_rate = 0.10  # module-level (global)
+
+# def price_with_discount(amount_cents):
+#     global discount_rate
+#     print("configured discount:", discount_rate)  # looks local because of the assignment below
+#     discount_rate = 0.20  # assignment makes 'discount_rate' local in this function
+#     return int(amount_cents * (1 - discount_rate))
+# price_with_discount(10)
+
+# x = 10
+# def outer():
+#     exec("""global x\nx+=1\nprint(x)""")
+
+# outer()
 
 
-@dataclass
-class Node:
-    key: Any
-    color: Color
-    left: "Node"
-    right: "Node"
-    parent: "Node"
+# module level (GLOBAL)
+
+# g = "global g"
+
+# def outer():
+#     e = "enclosing e"
+#     def inner():
+#         return e
+#     return inner
 
 
-class RedBlackTree:
-    """
-    Red-Black Tree (CLRS-style) with a single shared NIL sentinel.
-
-    Supports:
-      - insert(key)
-      - delete(key)  (raises KeyError if not found)
-      - search(key) -> bool
-      - find_node(key) -> Node | None
-      - inorder() -> generator of keys
-      - min(), max()
-    """
-
-    def __init__(self):
-        # Create a single NIL sentinel node; its pointers point to itself.
-        self.NIL = Node(key=None, color=Color.BLACK, left=None, right=None, parent=None)  # type: ignore
-        self.NIL.left = self.NIL.right = self.NIL.parent = self.NIL
-        self.root: Node = self.NIL
-        self._size = 0
-
-    def __len__(self) -> int:
-        return self._size
-
-    # ---------- Public API ----------
-
-    def search(self, key: Any) -> bool:
-        return self.find_node(key) is not None
-
-    def find_node(self, key: Any) -> Optional[Node]:
-        cur = self.root
-        while cur is not self.NIL:
-            if key == cur.key:
-                return cur
-            cur = cur.left if key < cur.key else cur.right
-        return None
-
-    def insert(self, key: Any) -> None:
-        # Standard BST insert
-        z = Node(key=key, color=Color.RED, left=self.NIL, right=self.NIL, parent=self.NIL)
-        y = self.NIL
-        x = self.root
-
-        while x is not self.NIL:
-            y = x
-            if z.key < x.key:
-                x = x.left
-            elif z.key > x.key:
-                x = x.right
-            else:
-                # If you prefer to allow duplicates, you can change this logic.
-                return
-
-        z.parent = y
-        if y is self.NIL:
-            self.root = z
-        elif z.key < y.key:
-            y.left = z
-        else:
-            y.right = z
-
-        self._size += 1
-        self._insert_fixup(z)
-
-    def delete(self, key: Any) -> None:
-        z = self.find_node(key)
-        if z is None:
-            raise KeyError(f"Key not found: {key}")
-
-        y = z
-        y_original_color = y.color
-        if z.left is self.NIL:
-            x = z.right
-            self._transplant(z, z.right)
-        elif z.right is self.NIL:
-            x = z.left
-            self._transplant(z, z.left)
-        else:
-            y = self._minimum_node(z.right)
-            y_original_color = y.color
-            x = y.right
-            if y.parent is z:
-                x.parent = y
-            else:
-                self._transplant(y, y.right)
-                y.right = z.right
-                y.right.parent = y
-            self._transplant(z, y)
-            y.left = z.left
-            y.left.parent = y
-            y.color = z.color
-
-        self._size -= 1
-        if y_original_color == Color.BLACK:
-            self._delete_fixup(x)
-
-    def inorder(self) -> Generator[Any, None, None]:
-        yield from self._inorder_nodes(self.root)
-
-    def min(self) -> Any:
-        if self.root is self.NIL:
-            raise ValueError("empty tree")
-        return self._minimum_node(self.root).key
-
-    def max(self) -> Any:
-        if self.root is self.NIL:
-            raise ValueError("empty tree")
-        return self._maximum_node(self.root).key
-
-    # ---------- Internal helpers ----------
-
-    def _inorder_nodes(self, n: Node) -> Generator[Any, None, None]:
-        if n is self.NIL:
-            return
-        yield from self._inorder_nodes(n.left)
-        yield n.key
-        yield from self._inorder_nodes(n.right)
-
-    def _minimum_node(self, n: Node) -> Node:
-        while n.left is not self.NIL:
-            n = n.left
-        return n
-
-    def _maximum_node(self, n: Node) -> Node:
-        while n.right is not self.NIL:
-            n = n.right
-        return n
-
-    def _left_rotate(self, x: Node) -> None:
-        y = x.right
-        x.right = y.left
-        if y.left is not self.NIL:
-            y.left.parent = x
-
-        y.parent = x.parent
-        if x.parent is self.NIL:
-            self.root = y
-        elif x is x.parent.left:
-            x.parent.left = y
-        else:
-            x.parent.right = y
-
-        y.left = x
-        x.parent = y
-
-    def _right_rotate(self, x: Node) -> None:
-        y = x.left
-        x.left = y.right
-        if y.right is not self.NIL:
-            y.right.parent = x
-
-        y.parent = x.parent
-        if x.parent is self.NIL:
-            self.root = y
-        elif x is x.parent.right:
-            x.parent.right = y
-        else:
-            x.parent.left = y
-
-        y.right = x
-        x.parent = y
-
-    def _insert_fixup(self, z: Node) -> None:
-        # Fix red-red violations upward.
-        while z.parent.color == Color.RED:
-            if z.parent is z.parent.parent.left:
-                y = z.parent.parent.right  # uncle
-                if y.color == Color.RED:
-                    # Case 1: parent and uncle are red -> recolor
-                    z.parent.color = Color.BLACK
-                    y.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    z = z.parent.parent
-                else:
-                    if z is z.parent.right:
-                        # Case 2: convert to case 3
-                        z = z.parent
-                        self._left_rotate(z)
-                    # Case 3: rotate + recolor
-                    z.parent.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    self._right_rotate(z.parent.parent)
-            else:
-                # Mirror cases
-                y = z.parent.parent.left
-                if y.color == Color.RED:
-                    z.parent.color = Color.BLACK
-                    y.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    z = z.parent.parent
-                else:
-                    if z is z.parent.left:
-                        z = z.parent
-                        self._right_rotate(z)
-                    z.parent.color = Color.BLACK
-                    z.parent.parent.color = Color.RED
-                    self._left_rotate(z.parent.parent)
-
-        self.root.color = Color.BLACK
-
-    def _transplant(self, u: Node, v: Node) -> None:
-        if u.parent is self.NIL:
-            self.root = v
-        elif u is u.parent.left:
-            u.parent.left = v
-        else:
-            u.parent.right = v
-        v.parent = u.parent
-
-    def _delete_fixup(self, x: Node) -> None:
-        # Fix "double black" at x.
-        while x is not self.root and x.color == Color.BLACK:
-            if x is x.parent.left:
-                w = x.parent.right  # sibling
-                if w.color == Color.RED:
-                    # Case 1
-                    w.color = Color.BLACK
-                    x.parent.color = Color.RED
-                    self._left_rotate(x.parent)
-                    w = x.parent.right
-                if w.left.color == Color.BLACK and w.right.color == Color.BLACK:
-                    # Case 2
-                    w.color = Color.RED
-                    x = x.parent
-                else:
-                    if w.right.color == Color.BLACK:
-                        # Case 3
-                        w.left.color = Color.BLACK
-                        w.color = Color.RED
-                        self._right_rotate(w)
-                        w = x.parent.right
-                    # Case 4
-                    w.color = x.parent.color
-                    x.parent.color = Color.BLACK
-                    w.right.color = Color.BLACK
-                    self._left_rotate(x.parent)
-                    x = self.root
-            else:
-                # Mirror cases
-                w = x.parent.left
-                if w.color == Color.RED:
-                    w.color = Color.BLACK
-                    x.parent.color = Color.RED
-                    self._right_rotate(x.parent)
-                    w = x.parent.left
-                if w.right.color == Color.BLACK and w.left.color == Color.BLACK:
-                    w.color = Color.RED
-                    x = x.parent
-                else:
-                    if w.left.color == Color.BLACK:
-                        w.right.color = Color.BLACK
-                        w.color = Color.RED
-                        self._left_rotate(w)
-                        w = x.parent.left
-                    w.color = x.parent.color
-                    x.parent.color = Color.BLACK
-                    w.left.color = Color.BLACK
-                    self._right_rotate(x.parent)
-                    x = self.root
-        x.color = Color.BLACK
+# f = outer()
+# outer()
 
 
-if __name__ == "__main__":
-    # Quick sanity test
-    rbt = RedBlackTree()
-    vals = [20, 15, 25, 10, 5, 1, 30, 22, 27, 19]
-    for v in vals:
-        rbt.insert(v)
+# dis.dis(outer)
 
-    print("Inorder:", list(rbt.inorder()))
-    print("Min:", rbt.min(), "Max:", rbt.max(), "Size:", len(rbt))
 
-    for v in [10, 22, 20, 1]:
-        rbt.delete(v)
-        print(f"After delete {v}:", list(rbt.inorder()), "Size:", len(rbt))
+# queue = []
+# condition = asyncio.Condition()
 
-    print("Search 22:", rbt.search(22))
-    print("Search 25:", rbt.search(25))
+
+# async def consumer():
+#     async with condition:
+#         while not queue: # condition not met
+#             print("Consumer waiting...")
+#             await condition.wait() # releases lock & sleeps
+
+
+# item = queue.pop(0)
+# print("Consumer got:", item)
+
+
+# async def producer():
+#     await asyncio.sleep(1)
+#     async with condition:
+#         queue.append("apple")
+#         print("Producer added item")
+#         condition.notify() # wake one waiter
+
+
+# async def main():
+#     await asyncio.gather(consumer(), producer())
+
+
+# asyncio.run(main())
+
+# print(dumb_add(2, 4))
+# print(sys.path)
+
+# print(__name__)
+# print(__package__)
+
+# PI: Final[float] = 3.1415926
+# PI = 4
+
+# print(sys.path)
+# sys.path.append('/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages')
+
+
+# a = array([
+#     [ 1,  2,  3,  4],
+#     [ 5,  6,  7,  8],
+#     [ 9, 10, 11, 12],
+#     [13, 14, 15, 16]
+#     ])
+
+
+# print(a[:2, :2])
+
+# b = array([1, 2, 3, 4])
+# c = [1, 2, 3, 4]
+# # print(b[:2]) 
+# s = a[2:, 2:]
+# # print(a[2:, 2:])
+
+# print(a[..., 2:])
+# print(a.shape)
+# print(b[(1,2)])
+
+# print(id(a))
+# print(id(s))
+
+# def f_pass():
+#     pass
+
+# def f_ellipsis():
+#     ...
+
+# dis.dis(f_pass)
+# dis.dis(f_ellipsis)
+
+# print(sys.executable)
+# print(sys.path)
+
+# e = "global"
+
+# class outer:
+#     e = "enclosing"
+
+#     class C:
+#         def f(self):
+#             frame = inspect.currentframe()
+#             return frame   # captured from outer()
+
+# y = 1
+
+# class A:
+#    x = y
+
+# class B(A):
+#    z = 10
+
+#    def output(self):
+#       print(z)
+
+# b = B()
+# b.output()
+
+# print(sys.modules[B.__module__].__dict__["y"])
+# print(B.__name__)
+# B.__name__ = "D"
+# print(B.__name__)
+# print(b.output.__class__.__mro__)
+
+
+# def greet(self):
+#    return f"Hello, I am {self.name}"
+
+# class Person:
+#    def __init__(self, name):
+#          self.name = name
+
+# p = Person("Alice")
+# # Manually bind the standalone function to the instance 'p'
+# p.say_hello = types.MethodType(greet, p) # this puts greet in the dict of instance p
+# # p.say_hello = greet
+# print(p.say_hello())  # Output: Hello, I am Alice
+
+# print(__name__)
+# print(__package__)
+# print(sys.path)
+
+gen = (x**2 for x in range(10))
+
+# def outer():
+#    x = 10
+#    def inner():
+#       nonlocal x
+#       print(x)
+#       x = 20
+#    inner()
+#    print(x)
+
+# outer()
+
+# print(0 and 1 )
+# print(i := int("dd"))
+# print(isinstance(i, int))
+# records = [
+#     {"id": 1, "score": "85"},
+#     {"id": 2, "score": None},
+#     {"id": 3, "score": "invalid"},
+#     {"id": 4, "score": "92"}
+# ]
+# def cleanse_data(rs):
+#    sum = n = 0
+#    clean = list()
+#    for r in rs:
+#       try:
+#          r["score"] = int(r["score"])
+#          clean.append(r)
+#          sum += r["score"]
+#          n += 1
+#       except:
+#          continue
+#    return clean, round(sum/n, 2)
+
+# ls, s = cleanse_data(records)
+# lst = [1, 2, 1, 4, 7, 2, 0, 1]
+# # 
+# def remove_duplicates(lst):
+#    return list(dict.fromkeys(lst))
+
+# print(remove_duplicates(lst))
+
+# print(d := dict.fromkeys(lst, [x*x for x in lst]))
+
+# print(list(d))
+
+# a = {1:"a", 2:"b"}
+# b = {2:"c", 3:"d"}
+
+# print({**a, **b})
+
+# def cache_by_dict(func):
+#    cache = {}
+#    def wrapper(x):
+#       if x in cache:
+#          print("hit")
+#          return cache[x]
+#       cache[x] = func(x)
+#       return cache[x]
+#    return wrapper
+
+# @cache_by_dict
+# def double(x):
+#    return x * 2
+
+# print(double(99))
+# print(double(99))
+
+# print(True.__str__())
+
+# records = [
+#   {"id": "001", "active": "true",  "score": "9"},
+#   {"id": 2,     "active": True,    "score": 10},
+#   {"id": "3",  "active": "FALSE", "score": 0},
+#   {"active": "true", "score": "7"}
+# ]
+
+# def normalize_records(lst):
+#    def parse_bool(v):
+#       _truable = {True, 1, "1", "true", "yes"}
+#       _falsable = {False, 0, "0", "false", "no"}
+#       converted = v
+#       if isinstance(v, str):
+#          converted = v.strip().lower()
+     
+#       if converted in _truable:
+#          return True
+#       elif converted in _falsable:
+#          return False
+#       else:
+#          raise ValueError("Incompatible value for casting to bool")
+   
+#    _keys = {"id", "active", "score"}
+#    cleaned = []
+#    errors = []
+#    if not isinstance(lst, list):
+#       errors.append("the input data is not a list")
+#       return cleaned, errors
+#    for i, r in enumerate(lst):
+#       if not isinstance(r, dict):
+#          errors.append(f"Row {i}: Not a dictionary")
+#          continue
+#       cr = {}
+#       for k in _keys:
+#          if k not in r.keys():
+#             errors.append(f"Row {i}: key {k} is missing")
+#             break
+#          try:
+#             if k == "id" or k == "score":
+#                cr[k] = int(r[k])
+#             else:
+#                cr[k] = parse_bool(r[k])
+#          except (TypeError, ValueError):
+#             errors.append({f"Row {i}: {k}:{r[k]}: wrong type or invalid value"})
+#             break
+#          except:
+#             errors.append({f"Row {i}: {k}:{r[k]}: unexpected error during casting"})
+#             break
+#       if(len(cr) == len(_keys)):
+#          cleaned.append(cr)
+#    return cleaned, errors
+         
+# cleaned, errors = normalize_records(records)
+# print(cleaned)
+# print(errors)
+         
+
+         
+
+# print(json.dumps({"name": "John", "age": 30}))
+# print(json.dumps(["apple", "bananas"]))
+# print(json.dumps(("apple", "bananas")))
+# print(json.dumps("hello"))
+# print(json.dumps(42))
+# print(json.dumps(31.76))
+# print(json.dumps(True))
+# print(json.dumps(False))
+# print(json.dumps(None))
+
+# print(bool("TRUE"))
+
+# l = [1, 2, 3, 4, 5, 6]
+
+# def chunks(lst, k):
+#     out = []
+#     for i in range(0, len(lst)-k+1, k):
+#       if(i+k-1<len(lst)):
+#          out.append(lst[i:i+k])
+#     return out
+
+# print(chunks(l, 2))
+
+
+# def task(x):
+#     return x * x
+
+# with concurrent.futures.ProcessPoolExecutor() as ex:
+#     futures = [ex.submit(task, i) for i in range(5)]
+#     print([f.result() for f in futures])
+
+# def producer(queue):
+#    for i in range(5):
+#       item = f"item-{i}"
+#       print(f"Producing {item}")
+#       queue.put(item)
+#       time.sleep(2)
+#    queue.put(None)
+
+# def consumer(queue):
+#    while True:
+#       item = queue.get()
+#       if item is None:
+#          break
+#       print(f"Consuming {item}")
+
+
+# def main():
+   # q = queue.Queue()
+   # producer_thread = threading.Thread(target=producer, args=(q,))
+   # consumer_thread = threading.Thread(target=consumer, args=(q,))
+
+   # producer_thread.start()
+   # consumer_thread.start()
+
+   # producer_thread.join()
+   # consumer_thread.join()
+   # with concurrent.futures.ProcessPoolExecutor() as ex:
+   #    futures = [ex.submit(task, i) for i in range(5)]
+   #    print([f.result() for f in futures])
+
+
+# if __name__ == "__main__":
+   # main()
+
+# class D:
+#     def __get__(self, obj, owner):
+#         return 100
+    
+#     def __set__(self, obj, value):
+#          obj._value = value
+
+# class C:
+#     x = D()
+
+# c = C()
+# c.__dict__['x'] = 5
+# print(c.__dict__)
+# print(type(c.x))
+# print(C.x)
+
+# def safe_divide(a, b):
+#    try:
+#       return a / b
+#    except Exception as e:
+#       raise e
+#    finally:
+#       return None
+   
+# print(safe_divide(2, 1))
+
+# print(bool(""))
+
+# def add(x, p=""):
+#    p+=str(x)
+#    return p
+
+# print(add)
+# add(1)
+
+# nums = [2, 2, 4]
+
+# def second_largest(nums):
+#    if not isinstance(nums, list):
+#       raise TypeError("Please provide a list for this function")
+#    dedup = list(set(nums))
+#    if len(dedup) <= 1:
+#       raise ValueError(f"the list has {len(dedup)} distinctive numbers")
+#    return sorted(dedup)[-2]
+
+# print(second_largest(nums))
+
+# def cache_by_dict(func):
+#    cache = {}
+#    def wrapper(*args, **kwargs):
+#       x = args[0]
+#       if x in cache:
+#          return cache[x]
+#       cache[x] = func(*args, **kwargs)
+#       return cache[x]
+#    return wrapper
+
+# @cache_by_dict
+# def double(x):
+#    return x * 2
+
+# print(double(5))
+
+# def chunks(lst, k):
+#    if not isinstance(lst, list):
+#       raise TypeError("lst is not a valid list")
+#    if k < 1:
+#       raise ValueError(f"k:{k} is not valid")
+#    out = []
+#    for i in range(0, len(lst), k):
+#       if len(s := lst[i:i+k]) == k:
+#          out.append(s)
+#    return out
+
+# print([0]*3)
+# import time
+
+# def expensive():
+#     time.sleep(1)
+#     return 99
+
+# # d = {"a": 1}
+# d = {}
+# x = d.get("a", expensive())
+# print(x)
+
+# class Box:
+#    items: list = ["class"]
+#    def __init__(self):
+#       self.items = ["instance"]
+   
+
+# b = Box()
+# print(b.items[0])
+# print(Box.items[0])
+
+# async def work():
+#     await asyncio.sleep(0.1)
+#     return 5
+
+# async def main():
+#     x = work()
+#     r = await x
+#     print(r)
+
+# asyncio.run(main())
+
+# nums = [0, 1, 2, 3, 4]
+# print(list(filter(lambda x: x % 2, nums)))
+# print(list(filter(lambda x: x % 2 == 0, nums)))
+
+# grid = [[0]*3]*3
+# grid[0][1] = 9
+# print(grid)
+
+# async def fetch_data(id, sleep_time):
+#    print(f"Coroutine {id} stating to fetch data")
+#    await asyncio.sleep(sleep_time)
+#    return {"id": id, "data":f"Sample data from coroutine {id}"}
+
+# async def main():
+#    tasks = []
+#    async with asyncio.TaskGroup() as tg:
+#       for i, sleep_time in enumerate([2,1,3], start=1):
+#          task = tg.create_task(fetch_data(i, sleep_time))
+#          # tasks.append(task)
+
+#    print("tasks launched")
+
+   # results = [task.result() for task in tasks]
+
+   # for result in results:
+   #    print(f"Received result: {result}")
+
+# print("see if this reenters")
+
+async def fetch_data(id, sleep_time):
+   print(f"Coroutine {id} starting to fetch data.")
+   await asyncio.sleep(sleep_time)
+   return {"id": id, "data":f"Sample data from coroutine {id}"}
+
+async def main():
+   task1 = asyncio.create_task(fetch_data(1, 2))
+   task2 = asyncio.create_task(fetch_data(2, 3))
+   task3 = asyncio.create_task(fetch_data(3, 1))
+
+   print("tasks launched")
+
+   # result1 = await task1
+   # result2 = await task2
+   # result3 = await task3
+
+   # print(result1, result2, result3)
+
+# async def set_future_result(future, value):
+#    print("started thread")
+#    await asyncio.sleep(10)
+#    future.set_result(value)
+#    await asyncio.sleep(10)
+#    print(f"Set the future's result to: {value}")
+#    return 100
+
+# async def main():
+#    loop = asyncio.get_running_loop()
+#    future = loop.create_future()
+#    print("about to create task")
+#    asyncio.create_task(set_future_result(future, "Future result is ready"))
+
+#    result = await future
+#    print(f"Received the future's result: {result}")
+
+# print("good")
+asyncio.run(main())
+
+print("good")

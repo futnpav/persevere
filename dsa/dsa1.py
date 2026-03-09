@@ -1,12 +1,14 @@
 import math
+import sys
 
 # List and Arrays
-my_list = [3, 45, 6, 1, 6, 8, -9]
-minVal = my_list[0]
+if __name__ == "__main__":
+    my_list = [3, 45, 6, 1, 6, 8, -9]
+    minVal = my_list[0]
 
-for i in my_list:
-    if i < minVal:
-        minVal = i
+    for i in my_list:
+        if i < minVal:
+            minVal = i
 
 # print("Minimum value in the list is:", minVal)
 
@@ -34,8 +36,9 @@ class ArrayStack:
         if(self.is_empty()):
             return None
         return self._store.pop()
-    
-s = ArrayStack()
+
+if __name__ == "__main__":
+    s = ArrayStack()
 # print("pop a new rights:", s.pop())
 
 # s.push(5)
@@ -823,6 +826,7 @@ class RBTree:
         if(self.root is self.nil):
             self.root = RBNode(v, "black")
             self.root.left = self.root.right = self.nil
+            self._size += 1
         else:
             grandchild = child = self.nil
             resolved = need_attention = False
@@ -862,8 +866,8 @@ class RBTree:
                     return True, db_returned, replacement_node
             if db_returned:
                 db_returned, replacement_node = self._fix_double_black_child(n, last_node)
-                return True, db_returned, replacement_node
-            return True, False, n
+                return deleted, db_returned, replacement_node
+            return deleted, db_returned, n
         if(self.is_empty()):
             return False
         deleted, db_top, self.root = _recursion_helper(None, self.root)
@@ -1077,3 +1081,8 @@ class MinHeap:
     #     pass
 
 
+print(__name__)
+print(__package__)
+print(__file__) # only for package, not module
+print(sys.path[0])
+# print("no")
