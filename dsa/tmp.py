@@ -12,6 +12,9 @@ import json
 import threading
 import queue
 from dataclasses import dataclass
+import pprint
+import functools
+import collections
 
 # Function to perform a CPU-bound task
 # def compute_factorial(n):
@@ -387,7 +390,7 @@ from dataclasses import dataclass
 # print(__package__)
 # print(sys.path)
 
-gen = (x**2 for x in range(10))
+# gen = (x**2 for x in range(10))
 
 # def outer():
 #    x = 10
@@ -718,17 +721,17 @@ gen = (x**2 for x in range(10))
 
 # print("see if this reenters")
 
-async def fetch_data(id, sleep_time):
-   print(f"Coroutine {id} starting to fetch data.")
-   await asyncio.sleep(sleep_time)
-   return {"id": id, "data":f"Sample data from coroutine {id}"}
+# async def fetch_data(id, sleep_time):
+#    print(f"Coroutine {id} starting to fetch data.")
+#    await asyncio.sleep(sleep_time)
+#    return {"id": id, "data":f"Sample data from coroutine {id}"}
 
-async def main():
-   task1 = asyncio.create_task(fetch_data(1, 2))
-   task2 = asyncio.create_task(fetch_data(2, 3))
-   task3 = asyncio.create_task(fetch_data(3, 1))
+# async def main():
+#    task1 = asyncio.create_task(fetch_data(1, 2))
+#    task2 = asyncio.create_task(fetch_data(2, 3))
+#    task3 = asyncio.create_task(fetch_data(3, 1))
 
-   print("tasks launched")
+#    print("tasks launched")
 
    # result1 = await task1
    # result2 = await task2
@@ -754,6 +757,394 @@ async def main():
 #    print(f"Received the future's result: {result}")
 
 # print("good")
-asyncio.run(main())
+# asyncio.run(main())
 
-print("good")
+# print("good")
+
+# def timer(func):
+#    def wrapper(*args, **kwargs):
+#       start_time = time.time()
+#       result = func(*args, **kwargs)
+#       end_time = time.time()
+#       print(f"Function {func.__name__!r} took: {end_time - start_time:.4f} sec")
+#       return result
+#    return wrapper
+
+# def example_function(n):
+#    return f"The sum is {sum(range(n))}"
+
+
+# # ef = example_function
+# print(timer(example_function)(1000))
+
+# def demo_exec():
+#    code = """def greet(name):
+#    print(locals())
+#    return f"Hello, {name}\"
+# print(locals())
+# abc = 'abc'"""
+
+   # local_scope, global_scope = {"addr":"eastwood"}, {}
+   # exec(code)
+   # print(local_scope["greet"]("Jerry"))
+   # print(locals())
+   # print(global_scope["abc"])
+
+# demo_exec()
+# good = "good"
+# code = """def greet(name):
+#    print('ab')
+#    return f"Hello, {name}\"
+# # global abcd
+# abcd = 'abcd'
+# # print(a)
+# print(good)
+# print(locals)"""
+
+# local_scope, global_scope = {"a":1}, {"a":2}
+# global_scope = {}
+# exec(code)
+# print(local_scope["greet"]("Tom"))
+# print(local_scope["abcd"])
+
+# from functools import cached_property
+
+# class Circle:
+#     def __init__(self, radius):
+#         self._radius = radius
+
+#     @property
+#     def radius(self):
+#         return self._radius
+
+#     @radius.setter
+#     def radius(self, value):
+#         self._radius = value
+#         # Manually clear the cache when radius is updated
+#         if 'area' in self.__dict__:
+#             del self.__dict__['area']
+
+#     @cached_property
+#     def area(self):
+#         print("--- Calculating Area ---")
+#         return 3.14 * (self._radius ** 2)
+
+
+# c = Circle(2)
+# print(c.area)
+# print(c.area)
+# c.radius = 10
+# print(c.area)
+# print(c.area)
+
+# def triadd(x, y):
+#     print(x, y)
+#     return x+y
+# a = [2, 4, 6, 8, 10]
+# r = functools.reduce(triadd, a, 100)
+# print(r)
+
+# factorial = functools.partial(functools.reduce, lambda x, y:x*y)
+# print(factorial(range(1,30)))
+
+# @functools.singledispatch
+# def handle_error(error_code):
+#     raise NotImplemented(f"Can't handle this error {error_code}")
+# @handle_error.register(int)
+# def _(error):
+#     print(f"handling TypeError: {error}")
+# @handle_error.register(str)
+# def _(error):
+#     print(f"handling ValueError: {error}")
+
+# handle_error("a")
+
+# c = collections.Counter({"cats":4,"dogs":8})
+# print(c["dogs"])
+# print(list(c.elements()))
+# print(c.total())
+
+# od = collections.OrderedDict({"a":2,"b":3})
+# od.move_to_end("a")
+# print(od)
+# print("".join(od))
+
+# i = collections.Counter([1, 3, 2, 3, 2]).elements()
+# print(list(i))
+
+# def infinite_dict():
+#    return collections.defaultdict(infinite_dict)
+
+# dd = collections.defaultdict(infinite_dict)
+
+# dd["first"]["second"]["third"] = 4
+# pprint.pprint(dd)
+
+# d1 = {"a":1, "b":2}
+# d2 = {"b":3, "c":4}
+
+# pprint.pprint(cm:=collections.ChainMap(d1,d2))
+# pprint.pprint({**d1, **d2})
+# print(cm["c"])
+# del cm["c"]
+
+# print(int([1]))
+
+# class my_class:
+#    def init(self):
+#       self.v = 5
+
+#    def get_me(self):
+#       return self
+
+# if []:
+#    print("true")
+# else:
+#    print("false")
+
+# import json
+# data = '{"x": 01}'
+# json.loads(data)
+
+# print(-(5//2))
+# print(int(-5/2))
+
+# data = [
+#    {"user":{"id":"1"}},
+#    {"user":{"id":2}},
+#    {"user":{}},
+#    {}
+# ]
+# def extract_valid_id(data):
+#    result = []
+#    for user_item in data:
+#       if "user" in user_item:
+#          if "id" in user_item["user"]:
+#             try:
+#                valid_id = int(user_item["user"]["id"])
+#             except (TypeError, ValueError):
+#                continue
+#             result.append(valid_id)
+#    return result
+
+# print(extract_valid_id(data))
+
+# records = [
+#    {"id":1},
+#    {"id":2},
+#    {"id":1},
+#    {"id":3},
+#    {"id":2}
+# ]
+# def get_duplicated_id(records):
+#    unique_ids = set()
+#    duplicates = set()
+#    for record in records:
+#       if record["id"] not in unique_ids:
+#          unique_ids.add(record["id"])
+#       else:
+#          duplicates.add(record["id"])
+#    return list(duplicates)
+
+# print(get_duplicated_id(records))
+
+# print(int(01))
+
+# rows = [
+#    '{"x":1}',
+#    '{"x":"2"}',
+#    '{"x":01}',
+#    '{"y":3}'
+# ]
+
+# def extract_int(rows):
+#    result = []
+#    for row in rows:
+#       left, right = row.replace("{","").replace("}","").split(":")
+#       if left not in ("'x'", '"x"'):
+#          continue
+#       if right[0] == "0":
+#          continue
+#       if right[0:1] in ("'0", '"0'):
+#          continue
+#       try:
+#          valid_int = int(right.strip("'").strip('"'))
+#       except ValueError:
+#          continue
+#       result.append(valid_int)
+#    return result
+
+# print(extract_int(rows))
+
+# obj = {"a":2,"b":4}
+
+# def safe_lookup(data, key):
+#    if isinstance(data, dict):
+#       return data.get(key)
+#    return None
+# print(safe_lookup({},"c"))
+
+# nums = [10,20,3.2]
+
+# def safe_average(nums):
+#    if not nums:
+#       return None
+#    valid_nums = []
+#    for num in nums:
+#       if isinstance(num, int) or isinstance(num, float):
+#          valid_nums.append(int(num))
+#       elif isinstance(num, str):
+#          try:
+#             valid_int = int(num)
+#          except (ValueError, TypeError):
+#             continue
+#          valid_nums.append(valid_int)
+#    if len(valid_nums):
+#       return functools.reduce(lambda x, y: x + y, valid_nums) // len(valid_nums)
+#    return None
+
+# print(safe_average(nums))
+
+# nums = [-5,-2,-9]
+
+# def safe_max(nums):
+#    if not nums:
+#       return None
+#    return functools.reduce(lambda x, y: x if x > y else y, nums)
+
+# print(safe_max(nums))
+
+# def chunk(lst, chunk_size):
+#    if not lst:
+#       return None
+#    if len(lst) < chunk_size:
+#       return None
+#    result = []
+#    chunked = 0
+#    while len(lst) - chunked >= chunk_size:
+#       result.append(lst[chunked:chunked+chunk_size])
+#       chunked += chunk_size
+#    return result
+
+# print(chunk([1,2,3,4,5,6,7], 3))
+
+# rows = [{"x":1}, {"x":2}, {"x":3}]
+
+# for r in rows:
+#    print("entered")
+#    if r["x"] == 2:
+#       rows.remove(r)
+
+# print(rows)
+
+# items = [{"id":1}, {"id":2}]
+
+# ids = []
+# for i in items:
+#    ids.append(i["id"])
+
+# print(ids)
+# print(i)
+
+# values = ["true", "False", "YES", "no", 1, 0, True, None, "asdfasdf"]
+
+# def normalize_bool(value):
+#    if value is None:
+#       return False
+#    if isinstance(value, bool):
+#       return value
+#    if isinstance(value, int) and value in (0, 1):
+#       return bool(value)
+#    if isinstance(value, str):
+#       if value.lower() in ("true", "yes"):
+#          return True
+#       elif value.lower() in ("false", "no"):
+#          return False
+#    return None
+
+# bool_values = [b for value in values if (b := normalize_bool(value)) is not None]
+# print(bool_values)
+
+# rows = [
+#    '{"x":1}',
+#    '{"x":"2"}',
+#    '{"x":01}',
+#    '{"y":3}'
+# ]
+# def extract_int(rows):
+#    result = []
+#    for r in rows:
+#       try:
+#          obj = json.loads(r)
+#       except json.JSONDecodeError:
+#          continue
+#       if not (data := obj.get("x")):
+#          continue
+#       try:
+#          data = int(data)
+#       except (TypeError, ValueError):
+#          continue
+#       result.append(data)
+#    return result
+
+# print(extract_int(rows))
+
+records = [
+   {"id":"001"},
+   {"id":1},
+   {"id":"1"},
+   {"id":"x"},
+   {"id":None},
+   {},
+   {"id":"002"},
+   {"id":2}
+]
+def normalize_id(records):
+   if not records:
+      return []
+   raw_result = []
+   seen = set()
+   for r in records:
+      if not isinstance(r, dict):
+         continue
+      id = r.get("id")
+      try:
+         id = int(id)
+      except (TypeError, ValueError):
+         continue
+      if id not in seen:
+         seen.add(id)
+      else:
+         raw_result.append(id)
+   return list(dict.fromkeys(raw_result))
+
+print(normalize_id(records))
+
+# records = [
+#    {"id":1},
+#    {"id":2},
+#    {"id":1},
+#    {"id":3},
+#    {"id":2},
+#    {"id":2}
+# ]
+# def first_duplicate(records):
+#    if not records:
+#       return []
+#    result = []
+#    seen = set()
+#    added = set()
+#    duplicate = []
+#    for inx, r in enumerate(records):
+#       if not isinstance(r, dict):
+#          continue
+#       id = r.get("id")
+#       if id not in seen:
+#          seen.add(id)
+#       else:
+#          if id not in added:
+#             result.append((id, inx))
+#             added.add(id)
+#    return result
+
+# print(first_duplicate(records))

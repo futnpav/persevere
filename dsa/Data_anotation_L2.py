@@ -1,3 +1,7 @@
+import math
+import collections
+import functools
+
 """
 Q1:
 class A:
@@ -253,3 +257,474 @@ immutable default value will trigger python to treat it as a local variable and 
 value in the function frame, and its scope of use is within the function call. 
 
 """
+
+"""
+Section I
+Q1: print 1, 2, 3 and 1, 2, 3, 4, 5
+Parameter acc is initialized as an empty list and stored in the __defaults__ in the function object 
+of flatten. As list is mutable the append operation has been made to the same default list across 
+all calls 
+Fix:
+"""
+def flatten(lst, acc=None):
+    if acc == None:
+        acc = []
+    for x in lst:
+        if isinstance(x, list):
+            flatten(x, acc)
+        else:
+            acc.append(x)
+    return acc
+
+"""
+Q2: print {d:[1,2]}
+setdefault() only sets default value to the same key once. The second call simply return the list
+the first call sets.
+Fix:
+"""
+d = {}
+d["a"] = [1]
+d["a"] = [2]
+print(d)
+"""
+Q3: print "All zero"
+it is not accurate as any tests whether any element in the list is truable. It returns False when none
+of the element is truable, not necessarily "All zero"
+Fix:
+"""
+nums = [0, 0, 0]
+if any(n != 0 for n in nums):
+    print("Has non-zero")
+else:
+    print("All zero")
+"""
+Q4:
+Same with Q1
+"""
+"""
+Q5: Judging from the code it seems the developer wants to make a sorted copy of original list. In this
+case the builtin sorted() is the right function to use.
+Fix: 
+"""
+nums = [3, 1, 2]
+result = sorted(nums)
+print(result)
+"""
+Q6: -5//2 is equivalent to math.floor(-5/2), which returns -3. This is probably not the intended result.
+If the developer wants to apply negative to rounded the division of 5/2, one might use: 
+"""
+print(-(5/2))
+"""
+Q7: the first prints [(1, 4), (2, 5), (3, 6)] and the second []. The zip object z is depleted after the 
+first call to create the list object list(z).
+"""
+z = zip([1,2,3], [4,5,6])
+print(list(z))
+print(list(z))
+"""
+Q8: print False. Float point numbers needs to be compared with a given precision. 
+Fix:
+"""
+print(round(0.1+0.2,1) == 0.3)
+"""
+Q9: Raise NameError on print(x). Python treats x as a local variable in f as it reads x = 5 during
+compilation. However, at run time, print(x) attempts to read x before it is assigned to a value. 
+Fix: If we intent f() to set global x to 5
+"""
+x = 10
+
+def f():
+    global x
+    print(x)
+    x = 5
+
+f()
+"""
+Q10: keys() returns a view object of the keys in a dict, and it updates with the dict. In the example, 
+if key "a" is removed then the list(d.keys())[0] will returns "b". It is always safer to use the key
+name directly. Or we create snapshot of the dict keys so that it doesn't change with the dict.
+Fix: 
+"""
+d = {"a":1, "b":2, "c":3}
+key_snapshot = list(d.keys())
+del d["a"]
+print(key_snapshot[0])
+"""
+Section II
+
+Q1:
+def unique(lst):
+   return list(set(lst))
+Verdict: acceptable with notes. It returns a list without duplicates but doesn't retain order
+Fix: 
+"""
+def unique(lst):
+   return list(dict.fromkeys(lst))
+"""
+Q2:
+def safe_get(d, key):
+   try:
+      return d[key]
+   except:
+      return None
+Reject: It supresses all error without screening, which makes debug very difficult. 
+Fix: if we know the type of value the dict stores, we shall use defaultdict. If not, we shall only
+void the errors we know but let other errors propagate. 
+"""
+def safe_get(d, key):
+   try:
+      return d[key]
+   except KeyError:
+      return None
+"""
+Q3:
+def is_sorted(lst):
+   return lst == sorted(lst)
+Verdict: accept. It is even better if it provides comments specifying it allows duplicates
+"""
+"""
+Q4:
+def add_user(users=[], name=""):
+    users.append(name)
+    return users
+verdict: reject. mutable type used as default value for parameters. In this case the function keeps 
+users in the same default list across funciton invocations where developers expect the function to
+create a new list for each call if the users parameter is omitted. 
+Fix:
+"""
+def add_user(users=None, name=""):
+    if users is None:
+        users = []
+    users.append(name)
+    return users
+"""
+Q5: Reject: not testing if nums is empty, which cause Divisionbyzero error
+Fix:
+"""
+def average(nums):
+    if not nums or not len(nums):
+        return 0
+    return sum(nums)/len(nums)
+
+"""
+Hopefully last drill before go!!!
+Q1:
+"""
+records = [
+   {"age": "30"},
+   {"age": 25},
+   {"age": None},
+   {"age": "unknown"},
+   {}
+]
+def normalize_data(records):
+   result = []
+   for record in records:
+      if "age" not in record:
+         continue
+      try:
+         tmp_age = int(record["age"])
+      except (TypeError, ValueError):
+         continue
+      result.append(tmp_age)
+   return result
+"""
+Q2:
+"""
+values = ["true", "False", "YES", "no", 1, 0, True, None, "asdfasdf"]
+def normalize_bool(value):
+   if isinstance(value, bool):
+      return value
+   if isinstance(value, int) and value in (0, 1):
+      return bool(value)
+   if isinstance(value, str):
+      if value.lower() in ("true", "yes"):
+         return True
+      elif value.lower() in ("false", "no"):
+         return False
+   return None
+
+bool_values = [b for value in values if (b := normalize_bool(value)) is not None]
+print(bool_values)
+"""
+Q3:
+"""
+records = [
+   {"id": 1, "score": "90"},
+   {"id": 2, "score": None},
+   {"id": 3, "score": "invalid"},
+   {"id": 4, "score": "85"}
+]
+def normalize_records2(records):
+   result = []
+   for record in records:
+      normalized_score = None
+      if "score" not in record:
+         continue
+      score = record.get("score")
+      if score is None:
+         continue
+      try:
+         score = int(score)
+      except (ValueError,TypeError):
+         continue
+      if score is not None:
+         result.append({"id":record["id"], "score":score})
+   return result
+"""
+Q4:
+"""
+records = [
+   {"id":1, "name":"Alice"},
+   {"name":"Bob"},
+   {"id":3},
+]
+def check_missing_keys(records):
+   output = []
+   expected_keys = ("id", "name")
+   for rid, record in enumerate(records):
+      for key in expected_keys:
+         if key not in record.keys():
+            output.append((rid, f"missing {key}"))
+   return output
+"""
+Q5:
+"""
+data = [
+   {"user":{"id":"1"}},
+   {"user":{"id":2}},
+   {"user":{}},
+   {}
+]
+def extract_valid_id(data):
+   result = []
+   for user_item in data:
+      user = user_item.get("user")
+      if not isinstance(user, dict):
+         continue
+      id = user.get("id")
+      try:
+         id = int(id)
+      except (TypeError, ValueError):
+         continue
+      result.append(id)
+   return result
+"""
+Q6:
+"""
+records = [
+   {"id":1},
+   {"id":2},
+   {"id":1},
+   {"id":3},
+   {"id":2}
+]
+def get_duplicated_id(records):
+   unique_ids = set()
+   duplicates = set()
+   for record in records:
+      if (rid := record.get("id")) is None:
+         continue
+      if rid not in unique_ids:
+         unique_ids.add(rid)
+      else:
+         duplicates.add(rid)
+   return list(duplicates)
+
+print(get_duplicated_id(records))
+"""
+Q7: 
+"""
+nums = [1,3,5,3,2,5]
+def first_duplicate(nums):
+   seen = set()
+   for num in nums:
+      if num in seen:
+         return num
+      else:
+         seen.add(num)
+   return None
+"""
+Q8:
+"""
+nums = [3,1,3,2,1,4]
+def remove_duplicate(nums):
+   return list(dict.fromkeys(nums))
+"""
+Q9:
+"""
+import json
+rows = [
+   '{"x":1}',
+   '{"x":"2"}',
+   '{"x":01}',
+   '{"y":3}'
+]
+# def extract_int(rows):
+#    result = []
+#    for row in rows:
+#       left, right = row.replace("{","").replace("}","").split(":")
+#       if left not in ("'x'", '"x"'):
+#          continue
+#       if right[0] == "0":
+#          continue
+#       if right[0:1] in ("'0", '"0'):
+#          continue
+#       try:
+#          valid_int = int(right.strip("'").strip('"'))
+#       except ValueError:
+#          continue
+#       result.append(valid_int)
+#    return result
+
+def extract_int(rows):
+   result = []
+   for r in rows:
+      try:
+         obj = json.loads(r)
+      except json.JSONDecodeError:
+         continue
+      data = obj.get("x")
+      try:
+         data = int(data)
+      except (TypeError, ValueError):
+         continue
+      result.append(data)
+   return result
+
+"""
+Q10:
+"""
+# safe_lookup({"a":1}, "a") → 1
+# safe_lookup({"a":1}, "b") → None
+# safe_lookup(None, "a") → None
+
+def safe_lookup(data, key):
+   if isinstance(data, dict):
+      return data.get(key)
+   return None
+"""
+Q11:
+Explanation: my function handles numbers in str or other types that can be casted to float. 
+Choosing float over int as the result of average is usually expected to be a float unless
+explicitly requesting flooring or ceiling
+"""
+nums = [10,20,30]
+
+def safe_average(nums):
+   if not nums:
+      return None
+   valid_nums = []
+   for num in nums:
+      try:
+         valid_num = float(num)
+      except (TypeError, ValueError):
+         continue
+      valid_nums.append(valid_num)
+   if not valid_nums:
+      return None
+   return sum(valid_nums)/len(valid_nums)
+"""
+Q12:
+"""
+nums = [-5,-2,-9]
+
+def safe_max(nums):
+   if not nums:
+      return None
+   return functools.reduce(lambda x, y: x if x > y else y, nums)
+"""
+Q13:
+"""
+def chunk(lst, chunk_size):
+   if not lst:
+      return None
+   if chunk_size <= 0:
+      raise ValueError("invalid chunk_size:{chunk_size}")
+   if len(lst) < chunk_size:
+      return []
+   result = []
+   chunked = 0
+   while len(lst) - chunked >= chunk_size:
+      result.append(lst[chunked:chunked+chunk_size])
+      chunked += chunk_size
+   return result
+"""
+Q14:
+It prints [{"x":1},{"x":3}]. I don't know what interviewer expect me to say here...
+"""
+"""
+Q15:
+It prints [1,2] and {'id':2} I don't know what interviewer expect me to say here either...
+"""
+"""
+3 harder ones
+Q1:
+"""
+records = [
+   {"id":1},
+   {"id":2},
+   {"id":1},
+   {"id":3},
+   {"id":2},
+   {"id":2}
+]
+def first_duplicate(records):
+   if not records:
+      return []
+   result = []
+   seen = set()
+   added = set()
+   for inx, r in enumerate(records):
+      if not isinstance(r, dict):
+         continue
+      rid = r.get("id")
+      if rid is None:
+         continue
+      if rid not in seen:
+         seen.add(rid)
+      else:
+         if rid not in added:
+            result.append((rid, inx))
+            added.add(rid)
+   return result
+"""
+Q2:
+I don't think there is a way to exactly detect duplicates without storing all the 
+data we need to test. To mitigate this problem, I would go after two directions, namely
+sampling and compression, or conbination of the two. With sampling I might create a pool
+for storing a decent size of consequtive samples to test the frequency of duplicates and 
+another pool for storing decent size of randomly selected samples with posistions as the 
+stream flows in to test the data in a bigger picture. Depending on the characteristics of
+the data we may also consider scaling the number down into a smaller range to increase 
+the size of data for detection. Additionally we can also test the distribution of the data
+to assess the likelihood for collision, e.g. evenly dividing the value space into segments
+and check the hit rate of the number in each segment.  
+"""
+"""
+Q3
+"""
+records = [
+   {"id":"001"},
+   {"id":1},
+   {"id":"1"},
+   {"id":"x"},
+   {"id":None},
+   {},
+   {"id":"002"},
+   {"id":2}
+]
+def normalize_id(records):
+   if not records:
+      return []
+   result = []
+   for r in records:
+      if not isinstance(r, dict):
+         continue
+      rid = r.get("id")
+      try:
+         rid = int(rid)
+      except (TypeError, ValueError):
+         continue
+      result.append(rid)
+   return list(dict.fromkeys(result))
