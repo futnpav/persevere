@@ -181,10 +181,10 @@ Equality is tested based on value, implemented by __eq__. Identity is esentially
 Hashable
     Hashable is the key property that decides whether one can be put in dictionary keys or sets. Sets 
     internally are hash tables. __hash__ and __eq__ are the default dunder methods for all objects. 
-    However, for those who overwrite __eq__, python will set __hass__ to None, making it unable to 
+    However, for those who overwrite __eq__, python will set __hash__ to None, making it unable to 
     be hash keys or set elements. All collection classes rewrite __eq__ and hence non-hashable, 
     such as list, dict, set, etc. Custom classes are hashable by default, unless one's __eq__ is 
-    rewritten. The default __eq__ actually checks identity. In python hash tables, __eq__ is user 
+    rewritten. The default __eq__ actually checks identity. In python hash tables, __eq__ is used 
     to test whether same hash is a result of hash collision or same / equal elements.
 
 
@@ -238,7 +238,7 @@ Decorators
 
     @my_modifier(1)
     def my_func():
-    return "Hello Linus"
+        return "Hello Linus"
 
 Note: Decorators can be chained, executing from the one immediately above the function being decorated 
 upwards
@@ -259,13 +259,13 @@ exec / eval
     Python executes the code like calling a function - it builds a frame for it, passing the global 
     and local to the frame, and then put the frame in the call stack. if global and local parameters
     are omitted, the result of globals() and locals() in the current execution context are passed to
-    the frame. As per the function signiture enclosing access is not supported. Developers can utilize
-    the global and local parameter to customize the execution context for exec, limiting it access to
-    certain builtins and variables. e.g. setting global to {"__builtins__":{}} to prevent the exec 
-    from accessing the builtin function. Exec adds its only local vars to local, which is accessible 
-    after exec. Please note the python __builtins__ is always sent to exec, even if we pass a empty 
-    global to it. We have to explicitly set {"__builtins__":{}} in the parameter global to remove
-    builtins.
+    the frame. As the function signiture indicates enclosing access is not supported. Developers can 
+    utilize the global and local parameter to customize the execution context for exec, limiting it 
+    access to certain builtins and variables. e.g. setting global to {"__builtins__":{}} to prevent 
+    the exec from accessing the builtin function. Exec adds its only local vars to local, which is 
+    accessible after exec. Please note the python __builtins__ is always sent to exec, even if we 
+    pass a empty global to it. We have to explicitly set {"__builtins__":{}} in the parameter global 
+    to remove builtins.
     eval: single line, return the result of evaluation
     exec: multiline, doesn't return
 
@@ -281,9 +281,9 @@ Iterable, Iterator and Generator
     Iterable has Iterator has Generator
     Iterable: __iter__
     Iterator: __iter__ and __next__, raises StopIteration
-    Generator: __iter__ and __next__, raises StopIteration, and supports send(), throw():caller calls
+    Generator: __iter__ and __next__, raises StopIteration, and supports send(), throw(): caller calls
     gen.throw(Exception) to cause the gen to raise the exception passed in for handling (except) and/or
-    clean up (finally) inside gen. If handle, gen is able to continue yielding, and close():similar 
+    clean up (finally) inside gen. If handled, gen is able to continue yielding, and close(): similar 
     with throw, only that it raises the dictated GeneratorExit exception and put the gen in an exhausted
     state.
     Generators are usually created by yield, or comprehension in (), e.g. (n for n in range(4))
