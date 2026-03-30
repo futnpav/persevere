@@ -1120,6 +1120,8 @@ def normalize_id(records):
 
 print(normalize_id(records))
 
+# test commit
+
 # records = [
 #    {"id":1},
 #    {"id":2},
